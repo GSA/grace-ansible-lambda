@@ -1,11 +1,15 @@
-# Project
+# GRACE Ansible Lambda [![GoDoc](https://godoc.org/github.com/GSA/grace-ansible-lambda?status.svg)](https://godoc.org/github.com/GSA/grace-ansible-lambda) [![Go Report Card](https://goreportcard.com/badge/gojp/goreportcard)](https://goreportcard.com/report/github.com/GSA/grace-ansible-lambda)
+
+**Lint Checks/Unit Tests:** [![CircleCI](https://circleci.com/gh/GSA/grace-ansible-lambda.svg?style=shield)](https://circleci.com/gh/GSA/grace-ansible-lambda)
 
 The grace-ansible-lambda is a project to implement a decentralized methodology for execution of Ansible within a particular AWS account. The intent is to allow Ansible to execute as necessary on an interval for configuration management without needing to host a large infrastructure deployment.
 
-The project uses two separate lambda functions to coordinate the deployment and cleanup of a singular EC2 instance for executing Ansible against the known hosts within the AWS account.
+The project uses a lambda function to coordinate the deployment and cleanup of a singular EC2 instance for executing Ansible against the known hosts within the AWS account. The EC2 is then responsible for calling the lambda function to initiate the cleanup action.
 
 ## Repository contents
 
+- **./**: Terraform module to deploy and configure Lambda function, S3 Bucket and IAM roles and policies
+- **lambda**: Go code for Lambda function
 
 ## Terraform Module Inputs
 
