@@ -25,6 +25,14 @@ data "aws_iam_policy_document" "policy" {
     resources = [aws_lambda_function.lambda.arn]
   }
   statement {
+    effect = "Allow"
+    actions = [
+      "s3:GetBucketLocation",
+      "s3:ListAllMyBuckets"
+    ]
+    resources = ["arn:aws:s3:::*"]
+  }
+  statement {
     effect    = "Allow"
     actions   = ["s3:ListBucket"]
     resources = [aws_s3_bucket.bucket.arn]

@@ -42,7 +42,10 @@ resource "aws_s3_bucket_object" "user_data" {
   bucket     = aws_s3_bucket.bucket.id
   acl        = "private"
   key        = "files/run.sh"
-  source     = "files/run.sh"
+  content    = templatefile("${path.module}/files/run.sh", {
+      role  = aws_iam_role.role.name
+      bucket = aws_s3_bucket.bucket.id
+  })
   kms_key_id = aws_kms_key.kms.arn
 }
 
