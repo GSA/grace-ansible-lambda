@@ -5,7 +5,7 @@ resource "aws_lambda_function" "lambda" {
   role                           = aws_iam_role.role.arn
   handler                        = var.lambda_handler
   source_code_hash               = filesha256(var.lambda_src)
-  kms_key_arn                    = aws_kms_key.kms_key.arn
+  kms_key_arn                    = aws_kms_key.kms.arn
   reserved_concurrent_executions = 1
   runtime                        = "go1.x"
   timeout                        = 900
