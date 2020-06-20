@@ -17,9 +17,9 @@ import (
 
 // Config holds all variables read from the ENV
 type Config struct {
-	Region             string   `env:"AWS_REGION" envDefault:"us-east-1"`
-	ImageID            string   `env:"AWS_IMAGE_ID" envDefault:""`
-	InstanceType       string   `env:"AWS_INSTANCE_TYPE" envDefault:"t2.micro"`
+	Region             string   `env:"REGION" envDefault:"us-east-1"`
+	ImageID            string   `env:"IMAGE_ID" envDefault:""`
+	InstanceType       string   `env:"INSTANCE_TYPE" envDefault:"t2.micro"`
 	InstanceProfileArn string   `env:"PROFILE_ARN" envDefault:""`
 	Bucket             string   `env:"USERDATA_BUCKET" envDefault:""`
 	Key                string   `env:"USERDATA_KEY" envDefault:""`

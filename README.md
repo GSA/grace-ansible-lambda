@@ -33,9 +33,9 @@ The project uses a lambda function to coordinate the deployment and cleanup of a
 
 | Name                 | Description |
 | -------------------- | ------------|
-| AWS_REGION           | (optional) Region used for EC2 instances (default: us-east-1) |
-| AWS_IMAGE_ID         | (optional) Region used for EC2 instances (default: us-east-1) |
-| AWS_INSTANCE_TYPE    | (optional) Specifies the instance type for the EC2 (e.g. t2.micro) |
+| REGION               | (optional) Region used for EC2 instances (default: us-east-1) |
+| IMAGE_ID             | (optional) Region used for EC2 instances (default: us-east-1) |
+| INSTANCE_TYPE        | (optional) Specifies the instance type for the EC2 (e.g. t2.micro) |
 | PROFILE_ARN          | (optional) IAM Instance Profile Arn for the EC2 |
 | SUBNET_ID            | (optional) The subnet ID where the EC2 should be created |
 | SECURITY_GROUP_IDS   | (optional) A comma delimited list of Security Group IDs |

@@ -28,12 +28,6 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
-variable "profile_arn" {
-  type        = string
-  description = "(optional) The IAM Instance Profile Arn to use for the EC2"
-  default     = ""
-}
-
 variable "subnet_id" {
   type        = string
   description = "(optional) The VPC Subnet ID where the EC2 should be placed"

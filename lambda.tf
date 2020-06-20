@@ -15,7 +15,7 @@ resource "aws_lambda_function" "lambda" {
       REGION             = var.region
       IMAGE_ID           = var.image_id
       INSTANCE_TYPE      = var.instance_type
-      PROFILE_ARN        = var.profile_arn
+      PROFILE_ARN        = aws_iam_instance_profile.profile.arn
       USERDATA_BUCKET    = aws_s3_bucket.bucket.id
       USERDATA_KEY       = "files/run.sh"
       SUBNET_ID          = var.subnet_id
