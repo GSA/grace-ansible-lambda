@@ -1,13 +1,13 @@
 variable "project" {
-    type = string
-    description = "(optional) The project name used as a prefix for all resources"
-    default = "grace"
+  type        = string
+  description = "(optional) The project name used as a prefix for all resources"
+  default     = "grace"
 }
 
 variable "appenv" {
-    type = string
-    description = "(optional) The targeted application environment used in resource names (default: development)"
-    default = "development"
+  type        = string
+  description = "(optional) The targeted application environment used in resource names (default: development)"
+  default     = "development"
 }
 
 variable "region" {
@@ -19,31 +19,31 @@ variable "region" {
 variable "image_id" {
   type        = string
   description = "(optional) The Amazon Machine Image ID to use for the EC2"
-  value       = ""
+  default     = ""
 }
 
 variable "instance_type" {
   type        = string
   description = "(optional) The instance type to use for the EC2 (default: t2.micro)"
-  value       = "t2.micro"
+  default     = "t2.micro"
 }
 
 variable "profile_arn" {
   type        = string
   description = "(optional) The IAM Instance Profile Arn to use for the EC2"
-  value       = ""
+  default     = ""
 }
 
 variable "subnet_id" {
   type        = string
   description = "(optional) The VPC Subnet ID where the EC2 should be placed"
-  value       = ""
+  default     = ""
 }
 
 variable "security_group_ids" {
   type        = string
   description = "(optional) A comma delimited list of security group ids"
-  value       = ""
+  default     = ""
 }
 
 variable "schedule_expression" {

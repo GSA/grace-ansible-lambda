@@ -1,3 +1,4 @@
+#tfsec:ignore:AWS002
 resource "aws_s3_bucket" "bucket" {
   bucket        = local.app_name
   acl           = "private"

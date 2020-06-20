@@ -63,6 +63,6 @@ resource "aws_iam_role_policy_attachment" "attach" {
 }
 
 resource "aws_iam_instance_profile" "profile" {
-  name = "${local.app_name}"
+  name = local.app_name
   role = aws_iam_role.role.name
 }
