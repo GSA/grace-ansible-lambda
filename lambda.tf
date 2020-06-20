@@ -3,8 +3,8 @@ resource "aws_lambda_function" "lambda" {
   function_name                  = local.app_name
   description                    = "Creates an EC2 instance and executes Ansible playbooks"
   role                           = aws_iam_role.role.arn
-  handler                        = var.lambda_handler
-  source_code_hash               = filesha256(var.lambda_src)
+  handler                        = local.lambda_handler
+  source_code_hash               = filesha256(local.lambda_src)
   kms_key_arn                    = aws_kms_key.kms.arn
   reserved_concurrent_executions = 1
   runtime                        = "go1.x"
