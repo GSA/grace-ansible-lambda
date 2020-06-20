@@ -20,7 +20,7 @@ resource "aws_s3_bucket" "bucket" {
   server_side_encryption_configuration {
     rule {
       apply_server_side_encryption_by_default {
-        kms_master_key_id = aws_kms_key.key.arn
+        kms_master_key_id = aws_kms_key.kms.arn
         sse_algorithm     = "aws:kms"
       }
     }
@@ -43,7 +43,7 @@ resource "aws_s3_bucket_object" "user_data" {
   acl        = "private"
   key        = "files/run.sh"
   source     = "files/run.sh"
-  kms_key_id = aws_kms_key.key.arn
+  kms_key_id = aws_kms_key.kms.arn
 }
 
 resource "aws_s3_bucket_object" "ansible_key" {
@@ -51,7 +51,7 @@ resource "aws_s3_bucket_object" "ansible_key" {
   acl        = "private"
   key        = "ansible/"
   source     = "/dev/null"
-  kms_key_id = aws_kms_key.key.arn
+  kms_key_id = aws_kms_key.kms.arn
 }
 
 # Execute lambda when ansible contents change

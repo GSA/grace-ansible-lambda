@@ -1,8 +1,8 @@
 data "aws_iam_policy_document" "kms" {
   statement {
-    effect   = "Allow"
-    actions  = ["kms:*"]
-    resource = "*"
+    effect    = "Allow"
+    actions   = ["kms:*"]
+    resources = ["*"]
     principals {
       type        = "AWS"
       identifiers = ["arn:aws:iam::${local.account_id}:root"]
@@ -22,7 +22,7 @@ data "aws_iam_policy_document" "kms" {
   #         type = "AWS"
   #         identifiers = var.config_role
   #     }
-  #     resource = "*"
+  #     resources = ["*"]
   # }
 
   statement {
@@ -34,7 +34,7 @@ data "aws_iam_policy_document" "kms" {
       "kms:GenerateDataKey*",
       "kms:DescribeKey"
     ]
-    resource = "*"
+    resources = ["*"]
     principals {
       type        = "AWS"
       identifiers = [aws_iam_role.role.arn]
@@ -46,12 +46,12 @@ resource "aws_kms_key" "kms" {
   description             = "Key used for ${local.app_name}"
   deletion_window_in_days = 7
   enable_key_rotation     = true
-  policy                  = aws_iam_policy_document.kms.json
+  policy                  = data.aws_iam_policy_document.kms.json
 
   depends_on = [aws_iam_role.role]
 }
 
 resource "aws_kms_alias" "kms" {
   name          = "alias/${local.app_name}"
-  target_key_id = aws_kms_key.key.key_id
+  target_key_id = aws_kms_key.kms.key_id
 }

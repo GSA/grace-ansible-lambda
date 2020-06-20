@@ -25,9 +25,9 @@ data "aws_iam_policy_document" "policy" {
     resources = [aws_lambda_function.lambda.arn]
   }
   statement {
-    effect   = "Allow"
-    actions  = ["s3:ListBucket"]
-    resource = aws_s3_bucket.bucket.arn
+    effect    = "Allow"
+    actions   = ["s3:ListBucket"]
+    resources = [aws_s3_bucket.bucket.arn]
   }
   statement {
     effect = "Allow"
@@ -36,7 +36,7 @@ data "aws_iam_policy_document" "policy" {
       "s3:GetObject",
       "s3:DeleteObject"
     ]
-    resource = "${aws_s3_bucket.bucket.arn}/*"
+    resources = ["${aws_s3_bucket.bucket.arn}/*"]
   }
   statement {
     effect = "Allow"
@@ -47,7 +47,7 @@ data "aws_iam_policy_document" "policy" {
       "kms:GenerateDataKey*",
       "kms:DescribeKey"
     ]
-    resource = aws_kms_key.kms.arn
+    resources = [aws_kms_key.kms.arn]
   }
 }
 
