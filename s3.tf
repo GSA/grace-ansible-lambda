@@ -39,12 +39,12 @@ resource "aws_s3_bucket_public_access_block" "bucket" {
 # NOTE: If you change the settings for user_data then update the lambda.tf
 # reference to USER_DATA_BUCKET and USER_DATA_KEY to reflect the change
 resource "aws_s3_bucket_object" "user_data" {
-  bucket     = aws_s3_bucket.bucket.id
-  acl        = "private"
-  key        = "files/run.sh"
-  content    = templatefile("${path.module}/files/run.sh", {
-      role  = aws_iam_role.role.name
-      bucket = aws_s3_bucket.bucket.id
+  bucket = aws_s3_bucket.bucket.id
+  acl    = "private"
+  key    = "files/run.sh"
+  content = templatefile("${path.module}/files/run.sh", {
+    role   = aws_iam_role.role.name
+    bucket = aws_s3_bucket.bucket.id
   })
   kms_key_id = aws_kms_key.kms.arn
 }
