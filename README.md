@@ -20,7 +20,6 @@ The project uses a lambda function to coordinate the deployment and cleanup of a
 | region | The AWS region for executing the EC2 | string | `"us-east-1"` | no |
 | image_id | The Amazon Machine Image ID to use for the EC2 | string | `""` | no |
 | instance_type | The instance type to use for the EC2 | string | `"t2.micro"` | no |
-| profile_arn | The IAM Instance Profile Arn to use for the EC2 | string | `""` | no |
 | subnet_id | The VPC Subnet ID where the EC2 should be placed | string | `""` | no |
 | security_group_ids | A comma delimited list of security group ids | string | `""` | no |
 | schedule_expression | Expression is used to adjust the trigger rate of the lambda function | string | `"rate(60 minutes)"` | no |
