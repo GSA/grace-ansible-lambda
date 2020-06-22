@@ -11,7 +11,8 @@ sudo amazon-linux-extras install epel -y
 sudo yum install s3fs-fuse -y
 
 echo "credentials file for s3fs"
-echo ${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY} > .passwd-s3fs
+# TODO: define resource for this or get from CRED below
+echo AWS_ACCESS_KEY_ID:AWS_SECRET_ACCESS_KEY > .passwd-s3fs
 chmod 0400 .passwd-s3fs
 
 echo "mounting S3 bucket with Ansible content"
