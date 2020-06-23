@@ -2,9 +2,9 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
@@ -39,15 +39,6 @@ type Payload struct {
 	InstanceID string `json:"instance_id"`
 }
 
-// IsValid returns true if the payload is valid
-func (p *Payload) IsValid() bool {
-	if p == nil {
-		return true
-	}
-	return strings.EqualFold(p.Method, "cleanup") &&
-		len(p.InstanceID) > 0
-}
-
 // App is a wrapper for running Lambda
 type App struct {
 	cfg *Config
@@ -67,17 +58,11 @@ func New() (*App, error) {
 
 // Run executes the lambda functionality
 func (a *App) Run(p *Payload) error {
-	if !p.IsValid() {
-		return errors.New("failed to validate payload")
-	}
-	if len(p.Method) == 0 {
-		return a.startup()
-	}
 	if strings.EqualFold(p.Method, "cleanup") {
 		return a.cleanup(p)
 	}
 
-	return nil
+	return a.startup()
 }
 
 func (a *App) startup() error {
@@ -87,7 +72,7 @@ func (a *App) startup() error {
 	}
 
 	if len(a.cfg.ImageID) == 0 {
-		a.cfg.ImageID, err = getImageID(sess)
+		a.cfg.ImageID, err = getLatestImageID(sess)
 		if err != nil {
 			return err
 		}
@@ -201,11 +186,36 @@ func getFilters(m map[string]string) (filters []*ec2.Filter) {
 	return
 }
 
-func getImageID(cfg client.ConfigProvider) (string, error) {
+func filterLatestImageID(images []*ec2.Image) (imageID string) {
+	var selected *ec2.Image
+	var latest time.Time
+	for _, i := range images {
+		t, err := time.Parse(time.RFC3339, aws.StringValue(i.CreationDate))
+		if err != nil {
+			fmt.Printf("time.Parse failed: %v\n", err)
+			continue
+		}
+		if selected == nil {
+			selected = i
+			latest = t
+			continue
+		}
+		if t.After(latest) {
+			selected = i
+			latest = t
+		}
+	}
+	if selected != nil {
+		imageID = aws.StringValue(selected.ImageId)
+	}
+	return
+}
+
+func getLatestImageID(cfg client.ConfigProvider) (string, error) {
 	svc := ec2.New(cfg)
 
 	filters := getFilters(map[string]string{
-		"name":                             "amzn-*2020*", //TODO: (bla) this should be a sort
+		"name":                             "amzn-*",
 		"architecture":                     "x86_64",
 		"virtualization-type":              "hvm",
 		"block-device-mapping.volume-type": "gp2",
@@ -218,7 +228,9 @@ func getImageID(cfg client.ConfigProvider) (string, error) {
 		return "", fmt.Errorf("failed to get Image ID: %v", err)
 	}
 
-	return aws.StringValue(output.Images[0].ImageId), nil
+	latest := filterLatestImageID(output.Images)
+
+	return latest, nil
 }
 
 func removeEC2(cfg client.ConfigProvider, instanceID ...string) error {
