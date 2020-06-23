@@ -28,13 +28,8 @@ data "aws_iam_policy_document" "policy" {
     effect = "Allow"
     actions = [
       "s3:GetBucketLocation",
-      "s3:ListAllMyBuckets"
+      "s3:ListBucket"
     ]
-    resources = ["arn:aws:s3:::*"]
-  }
-  statement {
-    effect    = "Allow"
-    actions   = ["s3:ListBucket"]
     resources = [aws_s3_bucket.bucket.arn]
   }
   statement {
@@ -63,11 +58,14 @@ data "aws_iam_policy_document" "policy" {
       "ec2:DescribeImages",
       "ec2:DescribeInstances",
       "ec2:RunInstances",
-      "ec2:TerminateInstance",
+      "ec2:TerminateInstances",
       "ec2:AssociateIamInstanceProfile",
+      "iam:GetRole",
+      "iam:PassRole",
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
-      "logs:PutLogEvents"
+      "logs:PutLogEvents",
+      "s3:ListAllMyBuckets"
     ]
     resources = ["*"]
   }
