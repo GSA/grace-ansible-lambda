@@ -50,7 +50,7 @@ type App struct {
 }
 
 // New creates a new App
-func New(ctx context.Context) (*App, error) {
+func New() (*App, error) {
 	a := &App{
 		cfg: &Config{},
 	}
@@ -182,10 +182,7 @@ func existsLock(cfg client.ConfigProvider, bucket, key string) bool {
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 	})
-	if err != nil {
-		return false
-	}
-	return true
+	return err == nil
 }
 
 func readLock(cfg client.ConfigProvider, bucket, key string) (string, error) {
