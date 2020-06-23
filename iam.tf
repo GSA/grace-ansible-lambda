@@ -61,10 +61,10 @@ data "aws_iam_policy_document" "policy" {
     effect = "Allow"
     actions = [
       "ec2:DescribeImages",
-      "ec2:DescribeInstaces",
+      "ec2:DescribeInstances",
       "ec2:RunInstances",
-      "ec2:TerminateInstace",
-      "iam:AssociateIamInstanceProfile",
+      "ec2:TerminateInstance",
+      "ec2:AssociateIamInstanceProfile",
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents"
