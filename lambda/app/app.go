@@ -2,6 +2,7 @@
 package app
 
 import (
+	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
@@ -147,7 +148,9 @@ func (a *App) createEC2(cfg client.ConfigProvider, userData string) (*ec2.Instan
 		MinCount:     aws.Int64(1),
 		MaxCount:     aws.Int64(1),
 	}
-	input.UserData = nilIfEmpty(userData)
+
+	sEnc := base64.StdEncoding.EncodeToString([]byte(userData))
+	input.UserData = nilIfEmpty(sEnc)
 	input.SubnetId = nilIfEmpty(a.cfg.SubnetID)
 
 	if len(a.cfg.SecurityGroupIds) > 0 {
