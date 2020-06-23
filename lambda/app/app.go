@@ -164,9 +164,9 @@ func (a *App) createEC2(cfg client.ConfigProvider, userData string) (*ec2.Instan
 
 	id := output.Instances[0].InstanceId
 
-	resp, err := svc.WaitUntilSystemStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: aws.StringSlice(id)})
+	err = svc.WaitUntilSystemStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{id}})
 	if err != nil {
-		return output.Instance[0], fmt.Errorf("failed to get status of instance(s) %v: %v", id, err)
+		return output.Instances[0], fmt.Errorf("failed to get status of instance(s) %v: %v", id, err)
 	}
 
 	return output.Instances[0], nil
