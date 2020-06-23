@@ -49,6 +49,8 @@ type App struct {
 	cfg *Config
 }
 
+var lockFileKey = "ansible_lock"
+
 // New creates a new App
 func New() (*App, error) {
 	a := &App{
@@ -77,7 +79,7 @@ func (a *App) startup() error {
 		return fmt.Errorf("failed to get AWS Session: %v", err)
 	}
 
-	locked, err := a.acquireLock(sess, a.cfg.Bucket, "ansible_lock")
+	locked, err := a.acquireLock(sess, a.cfg.Bucket, lockFileKey)
 	if err != nil {
 		return fmt.Errorf("failed to acquire lock: %v", err)
 	}
@@ -160,6 +162,23 @@ func (a *App) acquireLock(cfg client.ConfigProvider, bucket, key string) (bool, 
 	return true, nil
 }
 
+func (a *App) releaseLock(cfg client.ConfigProvider, bucket, key string) error {
+	if !existsLock(cfg, bucket, key) {
+		return nil
+	}
+
+	reqID, err := readLock(cfg, bucket, key)
+	if err != nil {
+		return err
+	}
+
+	if reqID != a.ctx.AwsRequestID {
+		return fmt.Errorf("failed cannot release lock as we are not the owner: %s -> %v", reqID, err)
+	}
+
+	return removeLock(cfg, bucket, key)
+}
+
 func setLock(cfg client.ConfigProvider, bucket, key, data string) error {
 	uploader := s3manager.NewUploader(cfg)
 	buf := &bytes.Buffer{}
@@ -196,6 +215,18 @@ func readLock(cfg client.ConfigProvider, bucket, key string) (string, error) {
 		return "", fmt.Errorf("failed to download lock from %s/%s", bucket, key)
 	}
 	return string(buf.Bytes()), nil
+}
+
+func removeLock(cfg client.ConfigProvider, bucket, key string) error {
+	svc := s3.New(cfg)
+	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to remove lock: %v", err)
+	}
+	return nil
 }
 
 func readUserData(cfg client.ConfigProvider, bucket, key string) ([]byte, error) {
@@ -271,6 +302,13 @@ func (a *App) cleanup(p *Payload) error {
 	if err != nil {
 		return fmt.Errorf("failed to get AWS Session: %v", err)
 	}
+
+	defer func() {
+		err := a.releaseLock(sess, a.cfg.Bucket, lockFileKey)
+		if err != nil {
+			fmt.Printf("failed to release lock: %v\n", err)
+		}
+	}()
 
 	err = removeEC2(sess, p.InstanceID)
 	if err != nil {

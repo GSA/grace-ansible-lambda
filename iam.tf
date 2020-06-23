@@ -57,6 +57,7 @@ data "aws_iam_policy_document" "policy" {
     actions = [
       "ec2:DescribeImages",
       "ec2:DescribeInstances",
+      "ec2:DescribeInstanceStatus",
       "ec2:RunInstances",
       "ec2:TerminateInstances",
       "ec2:AssociateIamInstanceProfile",
