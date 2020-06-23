@@ -46,8 +46,14 @@ variable "schedule_expression" {
   default     = "rate(60 minutes)"
 }
 
+variable "source_file" {
+  type        = string
+  description = "(optional) full or relative path to zipped binary of lambda handler"
+  default     = "../release/grace-ansible-lambda.zip"
+}
+
 # TODO: uncomment when aws_iam_policy_document.kms supports dynamic updates
-# 
+#
 # variable "config_role_arn" {
 #     type = string
 #     description = "(optional) The Role Arn used by the AWS Config service"
