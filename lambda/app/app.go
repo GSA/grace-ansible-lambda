@@ -2,18 +2,21 @@
 package app
 
 import (
+	"bytes"
+	"context"
 	"encoding/base64"
 	"fmt"
 	"strings"
 	"time"
 
+	"github.com/aws/aws-lambda-go/lambdacontext"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/client"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	"github.com/caarlos0/env/v6"
+	env "github.com/caarlos0/env/v6"
 )
 
 // Config holds all variables read from the ENV
@@ -42,11 +45,12 @@ type Payload struct {
 
 // App is a wrapper for running Lambda
 type App struct {
+	ctx *lambdacontext.LambdaContext
 	cfg *Config
 }
 
 // New creates a new App
-func New() (*App, error) {
+func New(ctx context.Context) (*App, error) {
 	a := &App{
 		cfg: &Config{},
 	}
@@ -58,7 +62,8 @@ func New() (*App, error) {
 }
 
 // Run executes the lambda functionality
-func (a *App) Run(p *Payload) error {
+func (a *App) Run(ctx context.Context, p *Payload) error {
+	a.ctx, _ = lambdacontext.FromContext(ctx)
 	if strings.EqualFold(p.Method, "cleanup") {
 		return a.cleanup(p)
 	}
@@ -70,6 +75,16 @@ func (a *App) startup() error {
 	sess, err := session.NewSession(&aws.Config{Region: aws.String(a.cfg.Region)})
 	if err != nil {
 		return fmt.Errorf("failed to get AWS Session: %v", err)
+	}
+
+	locked, err := a.acquireLock(sess, a.cfg.Bucket, "ansible_lock")
+	if err != nil {
+		return fmt.Errorf("failed to acquire lock: %v", err)
+	}
+
+	if !locked {
+		fmt.Printf("another lambda already has the ansible_lock\n")
+		return nil
 	}
 
 	if len(a.cfg.ImageID) == 0 {
@@ -88,6 +103,11 @@ func (a *App) startup() error {
 	}
 
 	instance, err := a.createEC2(sess, string(userData))
+	if err != nil {
+		return err
+	}
+
+	err = a.waitForEC2(sess, aws.StringValue(instance.InstanceId))
 	if err != nil {
 		return err
 	}
@@ -116,6 +136,69 @@ func (a *App) associateProfile(cfg client.ConfigProvider, instanceID ...string) 
 		}
 	}
 	return nil
+}
+
+func (a *App) acquireLock(cfg client.ConfigProvider, bucket, key string) (bool, error) {
+	if existsLock(cfg, bucket, key) {
+		return false, nil
+	}
+
+	err := setLock(cfg, bucket, key, a.ctx.AwsRequestID)
+	if err != nil {
+		return false, err
+	}
+
+	reqID, err := readLock(cfg, bucket, key)
+	if err != nil {
+		return false, err
+	}
+
+	if reqID != a.ctx.AwsRequestID {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func setLock(cfg client.ConfigProvider, bucket, key, data string) error {
+	uploader := s3manager.NewUploader(cfg)
+	buf := &bytes.Buffer{}
+	buf.WriteString(data)
+
+	_, err := uploader.Upload(&s3manager.UploadInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+		Body:   buf,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to upload file, %v", err)
+	}
+	return nil
+}
+
+func existsLock(cfg client.ConfigProvider, bucket, key string) bool {
+	svc := s3.New(cfg)
+	_, err := svc.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return false
+	}
+	return true
+}
+
+func readLock(cfg client.ConfigProvider, bucket, key string) (string, error) {
+	svc := s3manager.NewDownloader(cfg)
+	buf := &aws.WriteAtBuffer{}
+	_, err := svc.Download(buf, &s3.GetObjectInput{
+		Bucket: &bucket,
+		Key:    &key,
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to download lock from %s/%s", bucket, key)
+	}
+	return string(buf.Bytes()), nil
 }
 
 func readUserData(cfg client.ConfigProvider, bucket, key string) ([]byte, error) {
@@ -162,14 +245,28 @@ func (a *App) createEC2(cfg client.ConfigProvider, userData string) (*ec2.Instan
 		return nil, fmt.Errorf("failed to create EC2 instance: %v", err)
 	}
 
-	id := output.Instances[0].InstanceId
-
-	err = svc.WaitUntilSystemStatusOk(&ec2.DescribeInstanceStatusInput{InstanceIds: []*string{id}})
-	if err != nil {
-		return output.Instances[0], fmt.Errorf("failed to get status of instance(s) %v: %v", id, err)
-	}
-
 	return output.Instances[0], nil
+}
+
+func (a *App) waitForEC2(cfg client.ConfigProvider, instanceID ...string) error {
+	svc := ec2.New(cfg)
+	for {
+		time.Sleep(1 * time.Second)
+		output, err := svc.DescribeInstanceStatus(&ec2.DescribeInstanceStatusInput{
+			InstanceIds: aws.StringSlice(instanceID),
+		})
+		if err != nil {
+			fmt.Printf("failed to describe instance statuses: %v\n", err)
+			continue
+		}
+		status := aws.StringValue(output.InstanceStatuses[0].InstanceState.Name)
+		if strings.EqualFold(status, "running") {
+			return nil
+		}
+		if strings.EqualFold(status, "terminated") || strings.EqualFold(status, "shutting-down") {
+			return fmt.Errorf("failed to wait for EC2 instance: %s -> %v", instanceID[0], err)
+		}
+	}
 }
 
 func (a *App) cleanup(p *Payload) error {
