@@ -57,6 +57,15 @@ data "aws_iam_policy_document" "policy" {
     ]
     resources = [aws_kms_key.kms.arn]
   }
+  statement {
+    effect = "Allow"
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_policy" "policy" {
