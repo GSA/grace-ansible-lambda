@@ -61,7 +61,9 @@ data "aws_iam_policy_document" "policy" {
     effect = "Allow"
     actions = [
       "ec2:DescribeInstaces",
+      "ec2:RunInstances",
       "ec2:TerminateInstace",
+      "iam:AssociateIamInstanceProfile",
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents"
