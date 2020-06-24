@@ -277,6 +277,9 @@ func (a *App) createEC2(cfg client.ConfigProvider, userData string) (*ec2.Instan
 }
 
 func (a *App) waitForEC2(cfg client.ConfigProvider, instanceID ...string) error {
+	if len(instanceID) == 0 {
+		return fmt.Errorf("must provide at least one instance ID")
+	}
 	svc := ec2.New(cfg)
 	for {
 		time.Sleep(1 * time.Second)
@@ -285,6 +288,9 @@ func (a *App) waitForEC2(cfg client.ConfigProvider, instanceID ...string) error 
 		})
 		if err != nil {
 			fmt.Printf("failed to describe instance statuses: %v\n", err)
+			continue
+		}
+		if len(output.InstanceStatuses) == 0 {
 			continue
 		}
 		status := aws.StringValue(output.InstanceStatuses[0].InstanceState.Name)
