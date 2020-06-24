@@ -41,8 +41,9 @@ data "aws_iam_policy_document" "policy" {
     ]
     resources = [
       "${aws_s3_bucket.bucket.arn}/*",
-      "arn:aws:s3:::repo.${var.region}.amazonaws.com/*",
-      "arn:aws:s3:::repo.${var.region}.amazonaws.com"
+      "arn:aws:s3:::packages.*.amazonaws.com/*",
+      "arn:aws:s3:::repo.*.amazonaws.com/*",
+      "arn:aws:s3:::amazonlinux.*.amazonaws.com/*"
     ]
   }
   statement {
