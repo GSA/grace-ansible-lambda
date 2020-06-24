@@ -12,9 +12,9 @@ logger = logging.getLogger(__name__)
 EC2_METADATA_URL_BASE = 'http://169.254.169.254'
 
 def main():
-    bucket   = ${bucket}
-    role     = ${role}
-    function = ${function}
+    bucket   = '${bucket}'
+    role     = '${role}'
+    function = '${function}'
 
     # Execute Ansible playbook commands against s3 bucket
 
