@@ -371,7 +371,7 @@ func getLatestImageID(cfg client.ConfigProvider) (string, error) {
 	svc := ec2.New(cfg)
 
 	filters := getFilters(map[string]string{
-		"name":                             "amzn-*",
+		"name":                             "amzn2-*",
 		"architecture":                     "x86_64",
 		"virtualization-type":              "hvm",
 		"block-device-mapping.volume-type": "gp2",
