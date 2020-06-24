@@ -43,10 +43,21 @@ resource "aws_s3_bucket_object" "user_data" {
   acl    = "private"
   key    = "files/run.sh"
   content = templatefile("${path.module}/files/run.sh", {
-    role   = aws_iam_role.role.name
-    bucket = aws_s3_bucket.bucket.id
+    role     = aws_iam_role.role.name
+    bucket   = aws_s3_bucket.bucket.id
+    function = local.app_name
   })
   kms_key_id = aws_kms_key.kms.arn
+  etag       = filemd5("${path.module}/files/run.sh")
+}
+
+resource "aws_s3_bucket_object" "runner" {
+  bucket     = aws_s3_bucket.bucket.id
+  acl        = "private"
+  key        = "files/runner.py"
+  source     = "${path.module}/files/runner.py"
+  kms_key_id = aws_kms_key.kms.arn
+  etag       = filemd5("${path.module}/files/runner.py")
 }
 
 resource "aws_s3_bucket_object" "ansible_key" {
