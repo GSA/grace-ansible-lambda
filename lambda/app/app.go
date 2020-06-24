@@ -167,14 +167,17 @@ func (a *App) releaseLock(cfg client.ConfigProvider, bucket, key string) error {
 		return nil
 	}
 
-	reqID, err := readLock(cfg, bucket, key)
-	if err != nil {
-		return err
-	}
+	// TODO: We need a decent plan for identifying the startup/cleanup lambdas as unique
+	// We no longer know the original requestID so no point in comparing it. Just delete the lock
+	//
+	// reqID, err := readLock(cfg, bucket, key)
+	// if err != nil {
+	// 	return err
+	// }
 
-	if reqID != a.ctx.AwsRequestID {
-		return fmt.Errorf("failed cannot release lock as we are not the owner: %s -> %v", reqID, err)
-	}
+	// if reqID != a.ctx.AwsRequestID {
+	// 	return fmt.Errorf("failed cannot release lock as we are not the owner: %s -> %v", reqID, err)
+	// }
 
 	return removeLock(cfg, bucket, key)
 }
