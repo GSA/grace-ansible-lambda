@@ -29,6 +29,7 @@ type Config struct {
 	Key                string   `env:"USERDATA_KEY" envDefault:""`
 	SubnetID           string   `env:"SUBNET_ID" envDefault:""`
 	SecurityGroupIds   []string `env:"SECURITY_GROUP_IDS" envSeparator:","`
+	KeyPairName        string   `env:"KEYPAIR_NAME" envDefault:""`
 }
 
 // HasUserData returns true if both Config Bucket and Key are greater
@@ -266,6 +267,10 @@ func (a *App) createEC2(cfg client.ConfigProvider, userData string) (*ec2.Instan
 	sEnc := base64.StdEncoding.EncodeToString([]byte(userData))
 	input.UserData = nilIfEmpty(sEnc)
 	input.SubnetId = nilIfEmpty(a.cfg.SubnetID)
+
+	if len(a.cfg.KeyPairName) > 0 {
+		input.KeyName = aws.String(a.cfg.KeyPairName)
+	}
 
 	if len(a.cfg.SecurityGroupIds) > 0 {
 		input.SecurityGroupIds = aws.StringSlice(a.cfg.SecurityGroupIds)

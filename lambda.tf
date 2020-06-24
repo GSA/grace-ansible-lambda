@@ -20,6 +20,7 @@ resource "aws_lambda_function" "lambda" {
       USERDATA_KEY       = "files/run.sh"
       SUBNET_ID          = var.subnet_id
       SECURITY_GROUP_IDS = var.security_group_ids
+      KEYPAIR_NAME       = var.keypair_name
     }
   }
 }
