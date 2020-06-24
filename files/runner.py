@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+import os
 import sys
 import requests
 import logging
@@ -16,9 +17,17 @@ def main():
     role     = '${role}'
     function = '${function}'
 
+    deps()
+
     # Execute Ansible playbook commands against s3 bucket
 
     cleanup(bucket, role, function)
+
+def deps():
+    os.system('sudo amazon-linux-extras install ansible2 -y')
+    os.system('sudo amazon-linux-extras install awscli -y')
+    os.system('sudo amazon-linux-extras install epel -y')
+    os.system('sudo yum install s3fs-fuse -y')
 
 def cleanup(bucket, role, function):
     creds = load_aws_ec2_role_iam_credentials(role)

@@ -39,7 +39,11 @@ data "aws_iam_policy_document" "policy" {
       "s3:GetObject",
       "s3:DeleteObject"
     ]
-    resources = ["${aws_s3_bucket.bucket.arn}/*"]
+    resources = [
+      "${aws_s3_bucket.bucket.arn}/*",
+      "arn:aws:s3:::repo.${var.region}.amazonaws.com/*",
+      "arn:aws:s3:::repo.${var.region}.amazonaws.com"
+    ]
   }
   statement {
     effect = "Allow"
