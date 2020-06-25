@@ -23,7 +23,7 @@ curl -H "Host: s3-${region}.amazonaws.com" \
     -H "Date: $${dateValue}" \
     -H "Content-Type: $${contentType}" \
     -H "Authorization: AWS $${awsKey}:$${signature}" \
-    https://s3-${region}.amazonaws.com/${bucket}/$${amzFile} -o $outputFile
+    https://s3.${region}.amazonaws.com/${bucket}/$${amzFile} -o $outputFile
 
 
 export REGION="${region}"
@@ -33,6 +33,8 @@ export HOSTS_FILE="${hosts_file}"
 export SITE_FILE="${site_file}"
 
 sudo yum -y install unzip
+
+#ould not resolve host: s3-us-east-1.amazonaws.com
 
 cd /tmp
 unzip $outputFile
