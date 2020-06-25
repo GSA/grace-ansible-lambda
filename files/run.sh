@@ -7,7 +7,7 @@ resource="/${bucket}/$${amzFile}"
 contentType="application/zip"
 dateValue=`TZ=GMT date -R`
 stringToSign="GET\n\n$${contentType}\n$${dateValue}\n$${resource}"
-credRegex="AccessKeyId\W+((?<![A-Z0-9])[A-Z0-9]{20}(?![A-Z0-9]))\W+SecretAccessKey\W+((?<![A-Za-z0-9/+=])[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=]))\W+Token\W+((?<![A-Za-z0-9/+=])[A-Za-z0-9/+=]{275,300}(?![A-Za-z0-9/+=]))"
+credRegex="AccessKeyId\W+((?<![A-Z0-9])[A-Z0-9]{20}(?![A-Z0-9]))\W+SecretAccessKey\W+((?<![A-Za-z0-9/+=])[A-Za-z0-9/+=]{40}(?![A-Za-z0-9/+=]))\W+Token\W+((?<![A-Za-z0-9/+=])[A-Za-z0-9/+=]{975,1200}(?![A-Za-z0-9/+=]))"
 
 TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
 CRED=`curl -H "X-aws-ec2-metadata-token: $TOKEN" -v "http://169.254.169.254/latest/meta-data/iam/security-credentials/${role}"`
@@ -34,7 +34,6 @@ export SITE_FILE="${site_file}"
 sudo yum -y install unzip
 
 cd /tmp
-unzip $outputFile .
-
+unzip $outputFile
 chmod +x $binaryFile
 $binaryFile
