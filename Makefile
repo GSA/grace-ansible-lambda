@@ -6,9 +6,9 @@ GOBIN := $(GOPATH)/bin
 TFSEC := $(GOBIN)/tfsec
 
 .PHONY: precommit test deploy check lint_lambda test_lambda build_lambda release_lambda validate_terraform init_terraform apply_terraform apply_terraform_tests destroy_terraform_tests clean
-test: test_lambda validate_terraform
+test: test_lambda test_runner validate_terraform
 
-deploy: build_lambda
+deploy: build_lambda build_runner
 
 check: precommit
 ifeq ($(strip $(TF_VAR_appenv)),)
@@ -30,6 +30,18 @@ build_lambda: precommit
 release_lambda: precommit
 	make -C lambda release
 
+lint_runner: precommit
+	make -C runner lint
+
+test_runner: precommit
+	make -C runner test
+
+build_runner: precommit
+	make -C runner build
+
+release_runner: precommit
+	make -C runner release
+
 validate_terraform: init_terraform $(TFSEC)
 	terraform validate
 	$(TFSEC)
@@ -37,6 +49,7 @@ validate_terraform: init_terraform $(TFSEC)
 init_terraform: check
 	[[ -d release ]] || mkdir release
 	[[ -e release/grace-ansible-lambda.zip ]] || touch release/grace-ansible-lambda.zip
+	[[ -e release/grace-ansible-runner.zip ]] || touch release/grace-ansible-runner.zip
 	terraform init
 	terraform fmt
 
@@ -50,6 +63,9 @@ destroy_terraform_tests:
 
 clean: precommit
 	make -C lambda clean
+
+clean: precommit
+	make -C runner clean
 
 precommit:
 ifneq ($(strip $(hooksPath)),.github/hooks)
