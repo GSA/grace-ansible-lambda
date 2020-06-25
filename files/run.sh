@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+sudo yum -y install jq
 
 outputFile="/tmp/grace-ansible-runner.zip"
 binaryFile="/tmp/grace-ansible-runner"
@@ -11,19 +13,18 @@ credRegex="AccessKeyId\W+((?<![A-Z0-9])[A-Z0-9]{20}(?![A-Z0-9]))\W+SecretAccessK
 
 TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
 CRED=`curl -H "X-aws-ec2-metadata-token: $TOKEN" -v "http://169.254.169.254/latest/meta-data/iam/security-credentials/${role}"`
-if [[ $CRED =~ $credRegex ]]; then
-    s3Key="$${BASH_REMATCH[1]}"
-    s3Secret="$${BASH_REMATCH[2]}"
-    signature=`echo -en $${stringToSign} | openssl sha1 -hmac $${s3Secret} -binary | base64`
-    curl -H "Host: s3-${region}.amazonaws.com" \
-        -H "Date: $${dateValue}" \
-        -H "Content-Type: $${contentType}" \
-        -H "Authorization: AWS $${s3Key}:$${signature}" \
-        https://s3-${region}.amazonaws.com/${bucket}/$${amzFile} -o $outputFile
-else
-    echo "failed to parse $CRED"
-    exit 1
-fi
+
+awsKey=`echo $CRED | jq .AccessKeyId`
+awsSecret=`echo $CRED | jq .SecretAccessKey`
+awsToken=`echo $CRED | jq .Token`
+
+signature=`echo -en $${stringToSign} | openssl sha1 -hmac $${awsSecret} -binary | base64`
+curl -H "Host: s3-${region}.amazonaws.com" \
+    -H "Date: $${dateValue}" \
+    -H "Content-Type: $${contentType}" \
+    -H "Authorization: AWS $${awsKey}:$${signature}" \
+    https://s3-${region}.amazonaws.com/${bucket}/$${amzFile} -o $outputFile
+
 
 export REGION="${region}"
 export BUCKET="${bucket}"
