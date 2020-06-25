@@ -41,14 +41,26 @@ resource "aws_s3_bucket_public_access_block" "bucket" {
 resource "aws_s3_bucket_object" "user_data" {
   bucket = aws_s3_bucket.bucket.id
   acl    = "private"
-  key    = "files/runner.py"
-  content = templatefile("${path.module}/files/runner.py", {
-    role     = aws_iam_role.role.name
-    bucket   = aws_s3_bucket.bucket.id
-    function = local.app_name
+  key    = "files/run.sh"
+  content = templatefile("${path.module}/files/run.sh", {
+    region     = var.region
+    role       = aws_iam_role.role.name
+    bucket     = aws_s3_bucket.bucket.id
+    function   = local.app_name
+    hosts_file = var.appenv
+    site_file  = "site.yml"
   })
   kms_key_id = aws_kms_key.kms.arn
 }
+
+resource "aws_s3_bucket_object" "runner" {
+  bucket     = aws_s3_bucket.bucket.id
+  acl        = "private"
+  key        = "grace-ansible-runner.zip"
+  source     = "${path.module}/release/grace-ansible-runner.zip"
+  kms_key_id = aws_kms_key.kms.arn
+}
+
 
 resource "aws_s3_bucket_object" "ansible_key" {
   bucket     = aws_s3_bucket.bucket.id
