@@ -61,7 +61,6 @@ resource "aws_s3_bucket_object" "runner" {
   kms_key_id = aws_kms_key.kms.arn
 }
 
-
 resource "aws_s3_bucket_object" "ansible_key" {
   bucket     = aws_s3_bucket.bucket.id
   acl        = "private"
