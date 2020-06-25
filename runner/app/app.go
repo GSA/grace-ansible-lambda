@@ -17,6 +17,7 @@ import (
 	env "github.com/caarlos0/env/v6"
 )
 
+// Vars contains all environment variables used by Runner
 type Vars struct {
 	Region      string `env:"REGION" envDefault:"us-east-1"`
 	Bucket      string `env:"BUCKET,required"`
@@ -55,7 +56,11 @@ func (r *Runner) Run() error {
 	r.cfg = sess
 
 	defer func() {
-		r.getIdent()
+		err = r.getIdent()
+		if err != nil {
+			fmt.Printf("failed to get identity document: %v\n", err)
+			return
+		}
 		err = r.invokeLambda(r.vars.FuncName, "cleanup", r.ident.InstanceID)
 		if err != nil {
 			fmt.Printf("cleanup failed: %v\n", err)
@@ -67,7 +72,19 @@ func (r *Runner) Run() error {
 		return err
 	}
 
-	cmd := exec.Command(r.vars.AnsiblePath, "-i", r.vars.HostsFile, r.vars.SiteFile)
+	bin, bx := existsFile(r.vars.AnsiblePath)
+	hosts, hx := existsFile(r.vars.HostsFile)
+	site, sx := existsFile(r.vars.SiteFile)
+
+	if !bx {
+		return fmt.Errorf("ansible was not located at %s", r.vars.AnsiblePath)
+	}
+	if !hx || !sx {
+		return fmt.Errorf("%s file or %s file do not exist", r.vars.HostsFile, r.vars.SiteFile)
+	}
+
+	/* #nosec */
+	cmd := exec.Command(bin.Name(), "-i", hosts.Name(), site.Name())
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
@@ -137,11 +154,22 @@ func (r *Runner) copyS3Directory(bucket string, prefix string, outputPath string
 	return nil
 }
 
+func existsFile(path string) (os.FileInfo, bool) {
+	var (
+		err error
+		f   os.FileInfo
+	)
+	if f, err = os.Stat(path); os.IsNotExist(err) {
+		return nil, false
+	}
+	return f, true
+}
+
 func createBatches(bucket string, keys []string, outputPath string) ([]s3manager.BatchDownloadObject, error) {
 	var objects []s3manager.BatchDownloadObject
 	for _, k := range keys {
 		path := filepath.Join(outputPath, k)
-		f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0644)
+		f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open file: %s -> %v", path, err)
 		}

@@ -1,4 +1,4 @@
-module github.com/GSA/grace-ansible-lambda
+module github.com/briankfitzwater/grace-ansible-lambda/runner
 
 go 1.14
 

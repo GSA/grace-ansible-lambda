@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 	"log"
-	"github.com/GSA/grace-ansible-lambda/runner/app"
+	"github.com/briankfitzwater/grace-ansible-lambda/runner/app"
 )
 
 func main() {
