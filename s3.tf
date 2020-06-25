@@ -57,7 +57,7 @@ resource "aws_s3_bucket_object" "runner" {
   bucket     = aws_s3_bucket.bucket.id
   acl        = "private"
   key        = "grace-ansible-runner.zip"
-  source     = "${path.module}/release/grace-ansible-runner.zip"
+  source     = var.runner_file
   kms_key_id = aws_kms_key.kms.arn
 }
 
