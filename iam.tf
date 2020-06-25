@@ -28,13 +28,8 @@ data "aws_iam_policy_document" "policy" {
     effect = "Allow"
     actions = [
       "s3:GetBucketLocation",
-      "s3:ListAllMyBuckets"
+      "s3:ListBucket"
     ]
-    resources = ["arn:aws:s3:::*"]
-  }
-  statement {
-    effect    = "Allow"
-    actions   = ["s3:ListBucket"]
     resources = [aws_s3_bucket.bucket.arn]
   }
   statement {
@@ -44,7 +39,12 @@ data "aws_iam_policy_document" "policy" {
       "s3:GetObject",
       "s3:DeleteObject"
     ]
-    resources = ["${aws_s3_bucket.bucket.arn}/*"]
+    resources = [
+      "${aws_s3_bucket.bucket.arn}/*",
+      "arn:aws:s3:::packages.*.amazonaws.com/*",
+      "arn:aws:s3:::repo.*.amazonaws.com/*",
+      "arn:aws:s3:::amazonlinux.*.amazonaws.com/*"
+    ]
   }
   statement {
     effect = "Allow"
@@ -56,6 +56,47 @@ data "aws_iam_policy_document" "policy" {
       "kms:DescribeKey"
     ]
     resources = [aws_kms_key.kms.arn]
+  }
+  statement {
+    effect = "Allow"
+    actions = [
+      "ec2:DescribeImages",
+      "ec2:DescribeInstances",
+      "ec2:DescribeInstanceStatus",
+      "ec2:RunInstances",
+      "ec2:TerminateInstances",
+      "ec2:AssociateIamInstanceProfile",
+      "iam:GetRole",
+      "iam:PassRole",
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+      "s3:ListAllMyBuckets"
+    ]
+    resources = ["*"]
+  }
+  statement {
+    effect = "Allow"
+    actions = [
+      "cloudwatch:PutMetricData",
+      "ec2:DescribeVolumes",
+      "ec2:DescribeTags",
+      "logs:PutLogEvents",
+      "logs:DescribeLogStreams",
+      "logs:DescribeLogGroups",
+      "logs:CreateLogStream",
+      "logs:CreateLogGroup"
+    ]
+    resources = ["*"]
+  }
+  statement {
+    effect = "Allow"
+    actions = [
+      "ssm:GetParameter"
+    ]
+    resources = [
+      "arn:aws:ssm:*:*:parameter/AmazonCloudWatch-*"
+    ]
   }
 }
 

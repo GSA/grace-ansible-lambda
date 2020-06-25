@@ -17,9 +17,10 @@ resource "aws_lambda_function" "lambda" {
       INSTANCE_TYPE      = var.instance_type
       PROFILE_ARN        = aws_iam_instance_profile.profile.arn
       USERDATA_BUCKET    = aws_s3_bucket.bucket.id
-      USERDATA_KEY       = "files/run.sh"
+      USERDATA_KEY       = "files/runner.py"
       SUBNET_ID          = var.subnet_id
       SECURITY_GROUP_IDS = var.security_group_ids
+      KEYPAIR_NAME       = var.keypair_name
     }
   }
 }
