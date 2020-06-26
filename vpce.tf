@@ -14,7 +14,7 @@ resource "aws_security_group" "allow_ec2_vpce" {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.vpc.cidr_block]
+    cidr_blocks = [data.aws_vpc.vpc.cidr_block]
   }
 
   egress {

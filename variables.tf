@@ -34,6 +34,12 @@ variable "keypair_name" {
   default     = ""
 }
 
+variable "subnet_id" {
+  type        = string
+  description = "(optional) The VPC Subnet ID where the EC2 should be placed"
+  default     = ""
+}
+
 variable "vpc_id" {
   type        = string
   description = "(optional) The VPC ID where the EC2 should be placed"
