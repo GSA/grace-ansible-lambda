@@ -4,7 +4,6 @@ resource "aws_vpc_endpoint" "ec2" {
   vpc_endpoint_type   = "Interface"
   subnet_ids          = [var.subnet_id]
   security_group_ids  = [aws_security_group.allow_ec2_vpce.id]
-  private_dns_enabled = false
 }
 
 resource "aws_security_group" "allow_ec2_vpce" {
@@ -24,6 +23,6 @@ resource "aws_security_group" "allow_ec2_vpce" {
     from_port       = 0
     to_port         = 0
     protocol        = "-1"
-    prefix_list_ids = ["${aws_vpc_endpoint.my_endpoint.prefix_list_id}"]
+    prefix_list_ids = [aws_vpc_endpoint.ec2.prefix_list_id]
   }
 }
