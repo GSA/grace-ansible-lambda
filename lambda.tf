@@ -20,6 +20,7 @@ resource "aws_lambda_function" "lambda" {
       REGION             = var.region
       IMAGE_ID           = var.image_id
       INSTANCE_TYPE      = var.instance_type
+      EC2_ENDPOINT       = aws_vpc_endpoint.ec2.dns_entry[0]["dns_name"]
       PROFILE_ARN        = aws_iam_instance_profile.profile.arn
       USERDATA_BUCKET    = aws_s3_bucket.bucket.id
       USERDATA_KEY       = aws_s3_bucket_object.user_data.key

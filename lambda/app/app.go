@@ -23,6 +23,7 @@ import (
 type Config struct {
 	Region             string   `env:"REGION" envDefault:"us-east-1"`
 	ImageID            string   `env:"IMAGE_ID" envDefault:""`
+	Ec2Endpoint        string   `env:"EC2_ENDPOINT" envDefault:""`
 	InstanceType       string   `env:"INSTANCE_TYPE" envDefault:"t2.micro"`
 	InstanceProfileArn string   `env:"PROFILE_ARN" envDefault:""`
 	Bucket             string   `env:"USERDATA_BUCKET" envDefault:""`
@@ -255,8 +256,15 @@ func nilIfEmpty(value string) *string {
 	return &value
 }
 
+func (a *App) ec2Svc(cfg client.ConfigProvider) *ec2.EC2 {
+	if len(a.cfg.Ec2Endpoint) > 0 {
+		return ec2.New(cfg, &aws.Config{Endpoint: aws.String(a.cfg.Ec2Endpoint)})
+	}
+	return ec2.New(cfg)
+}
+
 func (a *App) createEC2(cfg client.ConfigProvider, userData string) (*ec2.Instance, error) {
-	svc := ec2.New(cfg)
+	svc := a.ec2Svc(cfg)
 
 	input := &ec2.RunInstancesInput{
 		ImageId:      aws.String(a.cfg.ImageID),
@@ -289,7 +297,7 @@ func (a *App) waitForEC2(cfg client.ConfigProvider, instanceID ...string) error 
 	if len(instanceID) == 0 {
 		return fmt.Errorf("must provide at least one instance ID")
 	}
-	svc := ec2.New(cfg)
+	svc := a.ec2Svc(cfg)
 	for {
 		time.Sleep(1 * time.Second)
 		output, err := svc.DescribeInstanceStatus(&ec2.DescribeInstanceStatusInput{
@@ -325,7 +333,7 @@ func (a *App) cleanup(p *Payload) error {
 		}
 	}()
 
-	err = removeEC2(sess, p.InstanceID)
+	err = a.removeEC2(sess, p.InstanceID)
 	if err != nil {
 		return err
 	}
@@ -390,8 +398,8 @@ func getLatestImageID(cfg client.ConfigProvider) (string, error) {
 	return latest, nil
 }
 
-func removeEC2(cfg client.ConfigProvider, instanceID ...string) error {
-	svc := ec2.New(cfg)
+func (a *App) removeEC2(cfg client.ConfigProvider, instanceID ...string) error {
+	svc := a.ec2Svc(cfg)
 
 	_, err := svc.TerminateInstances(&ec2.TerminateInstancesInput{
 		InstanceIds: aws.StringSlice(instanceID),
