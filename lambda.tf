@@ -11,7 +11,7 @@ resource "aws_lambda_function" "lambda" {
   timeout                        = 900
 
   vpc_config {
-    subnet_ids         = aws_subnet_ids.vpc.ids
+    subnet_ids         = data.aws_subnet_ids.vpc.ids
     security_group_ids = split(",", var.security_group_ids)
   }
 
