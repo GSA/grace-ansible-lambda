@@ -61,39 +61,6 @@ jobs:
           root: .
           paths:
             - ./release/*
-  lint_runner:
-    environment:
-      AWS_REGION: us-east-1
-    docker:
-      - image: circleci/golang:latest
-    working_directory: /go/src/github.com/GSA/grace-ansible-runner
-    steps:
-      - checkout
-      - run:
-          name: Lint Runner
-          command: make lint_runner
-  test_runner:
-    docker:
-      - image: circleci/golang:latest
-    working_directory: /go/src/github.com/GSA/grace-ansible-runner
-    steps:
-      - checkout
-      - run:
-          name: Run Unit Tests
-          command: make test_runner
-  release_runner:
-    docker:
-      - image: circleci/golang:latest
-    working_directory: /go/src/github.com/GSA/grace-ansible-runner
-    steps:
-      - checkout
-      - run:
-          name: Release Runner
-          command: make release_runner
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./release/*
   tfsec:
     docker:
       - image: circleci/golang:latest
@@ -113,14 +80,6 @@ workflows:
       - tfsec
       - lint_lambda
       - test_lambda
-      - release_lambda:
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              only: master
-      - lint_runner
-      - test_runner
       - release_lambda:
           filters:
             tags:

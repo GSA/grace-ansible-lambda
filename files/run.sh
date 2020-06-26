@@ -1,21 +1,16 @@
 #!/bin/bash
 
-sudo yum -y install unzip
 sudo yum -y install awscli
 sudo amazon-linux-extras install ansible2 -y
 
-outputFile="/tmp/grace-ansible-runner.zip"
-binaryFile="/tmp/grace-ansible-runner"
-
-sudo aws s3 cp s3://${bucket}/${key} /tmp/
-
-export REGION="${region}"
-export BUCKET="${bucket}"
-export FUNC_NAME="${function}"
-export HOSTS_FILE="${hosts_file}"
-export SITE_FILE="${site_file}"
+export AWS_REGION="${region}"
 
 cd /tmp
-unzip $outputFile
-chmod +x $binaryFile
-$binaryFile
+
+aws s3 cp --recursive s3://${bucket}/ .
+
+ansible-playbook -i ${hosts_file} ${site_file}
+
+aws s3 rm s3://${bucket}/ansible_lock
+
+aws ec2 terminate-instances --instance-ids "$(curl http://169.254.169.254/latest/meta-data/instance-id)"

@@ -10,17 +10,11 @@ resource "aws_lambda_function" "lambda" {
   runtime                        = "go1.x"
   timeout                        = 900
 
-  vpc_config {
-    subnet_ids         = [var.subnet_id]
-    security_group_ids = split(",", var.security_group_ids)
-  }
-
   environment {
     variables = {
       REGION             = var.region
       IMAGE_ID           = var.image_id
       INSTANCE_TYPE      = var.instance_type
-      EC2_ENDPOINT       = aws_vpc_endpoint.ec2.dns_entry[0]["dns_name"]
       PROFILE_ARN        = aws_iam_instance_profile.profile.arn
       USERDATA_BUCKET    = aws_s3_bucket.bucket.id
       USERDATA_KEY       = aws_s3_bucket_object.user_data.key

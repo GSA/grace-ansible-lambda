@@ -3,13 +3,13 @@ resource "aws_vpc_endpoint" "ec2" {
   service_name        = "com.amazonaws.${var.region}.ec2"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = [var.subnet_id]
-  security_group_ids  = [aws_security_group.allow_ec2_vpce.id]
+  security_group_ids  = [aws_security_group.allow_vpce.id]
   private_dns_enabled = true
 }
 
-resource "aws_security_group" "allow_ec2_vpce" {
-  name        = "allow_ec2_vpce"
-  description = "Allow access to the EC2 VPCE"
+resource "aws_security_group" "allow_vpce" {
+  name        = "allow_vpce"
+  description = "Allow access to the VPCE"
   vpc_id      = data.aws_vpc.vpc.id
 
   ingress {
