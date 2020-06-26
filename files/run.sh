@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sudo yum -y install jq
+sudo yum -y install unzip
 
 outputFile="/tmp/grace-ansible-runner.zip"
 binaryFile="/tmp/grace-ansible-runner"
@@ -31,10 +32,6 @@ export BUCKET="${bucket}"
 export FUNC_NAME="${function}"
 export HOSTS_FILE="${hosts_file}"
 export SITE_FILE="${site_file}"
-
-sudo yum -y install unzip
-
-#ould not resolve host: s3-us-east-1.amazonaws.com
 
 cd /tmp
 unzip $outputFile
