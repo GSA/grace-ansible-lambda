@@ -1,9 +1,10 @@
 package main
 
 import (
-	"os"
 	"log"
-	"github.com/briankfitzwater/grace-ansible-lambda/runner/app"
+	"os"
+
+	"github.com/GSA/grace-ansible-lambda/runner/app"
 )
 
 func main() {

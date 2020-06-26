@@ -2,6 +2,7 @@
 
 sudo yum -y install unzip
 sudo yum -y install awscli
+sudo amazon-linux-extras install ansible2 -y
 
 outputFile="/tmp/grace-ansible-runner.zip"
 binaryFile="/tmp/grace-ansible-runner"

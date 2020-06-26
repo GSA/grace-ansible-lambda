@@ -54,10 +54,11 @@ var lockFileKey = "ansible_lock"
 
 // New creates a new App
 func New() (*App, error) {
+	cfg := Config{}
 	a := &App{
-		cfg: &Config{},
+		cfg: &cfg,
 	}
-	err := env.Parse(a.cfg)
+	err := env.Parse(&cfg)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse ENV: %v", err)
 	}

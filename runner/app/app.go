@@ -1,6 +1,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -14,7 +15,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/lambda"
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
-	env "github.com/caarlos0/env/v6"
+	"github.com/caarlos0/env/v6"
 )
 
 // Vars contains all environment variables used by Runner
@@ -26,7 +27,7 @@ type Vars struct {
 	FuncName    string `env:"FUNC_NAME"`
 	HostsFile   string `env:"HOSTS_FILE"`
 	SiteFile    string `env:"SITE_FILE"`
-	AnsiblePath string `env:"ANSIBLE_PATH" envDefault:"ansible"`
+	AnsiblePath string `env:"ANSIBLE_PATH" envDefault:"ansible-playbook"`
 }
 
 // Runner holds the state for the runner
@@ -38,12 +39,12 @@ type Runner struct {
 
 // New returns an instantiated Runner
 func New() (*Runner, error) {
-	r := &Runner{}
-	err := env.Parse(&r.vars)
+	vars := Vars{}
+	err := env.Parse(&vars)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate environment variables: %v", err)
 	}
-	return r, nil
+	return &Runner{vars: &vars}, nil
 }
 
 // Run copies the files in the bucket, executes ansible against the HostsFile and SiteFile,
@@ -83,6 +84,7 @@ func (r *Runner) Run() error {
 		return fmt.Errorf("%s file or %s file do not exist", r.vars.HostsFile, r.vars.SiteFile)
 	}
 
+	fmt.Printf("executing ansible-playbook ")
 	/* #nosec */
 	cmd := exec.Command(bin.Name(), "-i", hosts.Name(), site.Name())
 	cmd.Stdout = os.Stdout
@@ -122,9 +124,10 @@ func (r *Runner) invokeLambda(funcName, method, instanceID string) error {
 		return fmt.Errorf("failed to marshal payload: %v", err)
 	}
 
-	_, err = svc.Invoke(&lambda.InvokeInput{
+	buf := bytes.NewReader(b)
+	_, err = svc.InvokeAsync(&lambda.InvokeAsyncInput{
 		FunctionName: aws.String(funcName),
-		Payload:      b,
+		InvokeArgs:   buf,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to invoke lambda: %s -> %v", funcName, err)
