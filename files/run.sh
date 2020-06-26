@@ -15,9 +15,9 @@ credRegex="AccessKeyId\W+((?<![A-Z0-9])[A-Z0-9]{20}(?![A-Z0-9]))\W+SecretAccessK
 TOKEN=`curl -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600"`
 CRED=`curl -H "X-aws-ec2-metadata-token: $TOKEN" -v "http://169.254.169.254/latest/meta-data/iam/security-credentials/${role}"`
 
-awsKey=`echo $CRED | jq .AccessKeyId`
-awsSecret=`echo $CRED | jq .SecretAccessKey`
-awsToken=`echo $CRED | jq .Token`
+awsKey=`echo $CRED | jq -r .AccessKeyId`
+awsSecret=`echo $CRED | jq -r .SecretAccessKey`
+awsToken=`echo $CRED | jq -r .Token`
 
 signature=`echo -en $${stringToSign} | openssl sha1 -hmac $${awsSecret} -binary | base64`
 curl -H "Host: s3-${region}.amazonaws.com" \
