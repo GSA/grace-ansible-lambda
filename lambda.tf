@@ -23,7 +23,7 @@ resource "aws_lambda_function" "lambda" {
       PROFILE_ARN        = aws_iam_instance_profile.profile.arn
       USERDATA_BUCKET    = aws_s3_bucket.bucket.id
       USERDATA_KEY       = aws_s3_bucket_object.user_data.key
-      SUBNET_ID          = var.subnet_id
+      SUBNET_ID          = data.aws_subnet_ids.vpc.ids[0]
       SECURITY_GROUP_IDS = var.security_group_ids
       KEYPAIR_NAME       = var.keypair_name
     }
