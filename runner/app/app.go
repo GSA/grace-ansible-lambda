@@ -1,7 +1,6 @@
 package app
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -27,7 +26,7 @@ type Vars struct {
 	FuncName    string `env:"FUNC_NAME"`
 	HostsFile   string `env:"HOSTS_FILE"`
 	SiteFile    string `env:"SITE_FILE"`
-	AnsiblePath string `env:"ANSIBLE_PATH" envDefault:"ansible-playbook"`
+	AnsiblePath string `env:"ANSIBLE_PATH" envDefault:"ansible"`
 }
 
 // Runner holds the state for the runner
@@ -62,6 +61,7 @@ func (r *Runner) Run() error {
 			fmt.Printf("failed to get identity document: %v\n", err)
 			return
 		}
+		fmt.Printf("invoking cleanup lambda for instance_id: %s\n", r.ident.InstanceID)
 		err = r.invokeLambda(r.vars.FuncName, "cleanup", r.ident.InstanceID)
 		if err != nil {
 			fmt.Printf("cleanup failed: %v\n", err)
@@ -84,7 +84,8 @@ func (r *Runner) Run() error {
 		return fmt.Errorf("%s file or %s file do not exist", r.vars.HostsFile, r.vars.SiteFile)
 	}
 
-	fmt.Printf("executing ansible-playbook ")
+	fmt.Printf("executing %s -i %s %s\n", bin.Name(), hosts.Name(), site.Name())
+
 	/* #nosec */
 	cmd := exec.Command(bin.Name(), "-i", hosts.Name(), site.Name())
 	cmd.Stdout = os.Stdout
@@ -124,10 +125,10 @@ func (r *Runner) invokeLambda(funcName, method, instanceID string) error {
 		return fmt.Errorf("failed to marshal payload: %v", err)
 	}
 
-	buf := bytes.NewReader(b)
-	_, err = svc.InvokeAsync(&lambda.InvokeAsyncInput{
-		FunctionName: aws.String(funcName),
-		InvokeArgs:   buf,
+	_, err = svc.Invoke(&lambda.InvokeInput{
+		FunctionName:   aws.String(funcName),
+		InvocationType: aws.String("Event"),
+		Payload:        b,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to invoke lambda: %s -> %v", funcName, err)

@@ -10,6 +10,11 @@ resource "aws_lambda_function" "lambda" {
   runtime                        = "go1.x"
   timeout                        = 900
 
+  vpc_config {
+    subnet_ids         = [var.subnet_id]
+    security_group_ids = split(",", var.security_group_ids)
+  }
+
   environment {
     variables = {
       REGION             = var.region
