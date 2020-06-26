@@ -4,7 +4,7 @@ resource "aws_vpc_endpoint" "ec2" {
   vpc_endpoint_type   = "Interface"
   subnet_ids          = [var.subnet_id]
   security_group_ids  = [aws_security_group.allow_ec2_vpce.id]
-  private_dns_enabled = false
+  private_dns_enabled = true
 }
 
 resource "aws_security_group" "allow_ec2_vpce" {
@@ -24,6 +24,6 @@ resource "aws_security_group" "allow_ec2_vpce" {
     from_port       = 0
     to_port         = 0
     protocol        = "-1"
-    cidr_blocks     = ["0.0.0.0/0"]
+    cidr_blocks     = [data.aws_vpc.vpc.cidr_block]
   }
 }
