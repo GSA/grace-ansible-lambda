@@ -18,12 +18,15 @@ resource "aws_iam_role" "role" {
   assume_role_policy = data.aws_iam_policy_document.role.json
 }
 
-data "aws_iam_policy_document" "policy" {
+data "aws_iam_policy_document" "execute" {
   statement {
     effect    = "Allow"
     actions   = ["lambda:InvokeFunction"]
     resources = [aws_lambda_function.lambda.arn]
   }
+}
+
+data "aws_iam_policy_document" "policy" {
   statement {
     effect = "Allow"
     actions = [
@@ -107,13 +110,24 @@ data "aws_iam_policy_document" "policy" {
 
 resource "aws_iam_policy" "policy" {
   name        = "${local.app_name}-ec2"
-  description = "Policy to allow EC2 to invoke ${local.app_name}"
+  description = "Policy to allow EC2 and Lambda permissions for ${local.app_name}"
   policy      = data.aws_iam_policy_document.policy.json
+}
+
+resource "aws_iam_policy" "execute" {
+  name        = "${local.app_name}-ec2-execute"
+  description = "Policy to allow EC2 to invoke ${local.app_name}"
+  policy      = data.aws_iam_policy_document.execute.json
 }
 
 resource "aws_iam_role_policy_attachment" "attach" {
   role       = aws_iam_role.role.name
   policy_arn = aws_iam_policy.policy.arn
+}
+
+resource "aws_iam_role_policy_attachment" "attach_execute" {
+  role       = aws_iam_role.role.name
+  policy_arn = aws_iam_policy.execute.arn
 }
 
 resource "aws_iam_instance_profile" "profile" {

@@ -28,6 +28,8 @@ resource "aws_lambda_function" "lambda" {
       KEYPAIR_NAME       = var.keypair_name
     }
   }
+
+  depends_on = [aws_iam_role_policy_attachment.attach]
 }
 
 # used to trigger lambda when the bucket updates
