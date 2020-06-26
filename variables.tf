@@ -64,12 +64,6 @@ variable "source_file" {
   default     = "../release/grace-ansible-lambda.zip"
 }
 
-variable "runner_file" {
-  type        = string
-  description = "(optional) full or relative path to zipped binary of lambda handler"
-  default     = "../release/grace-ansible-runner.zip"
-}
-
 # TODO: uncomment when aws_iam_policy_document.kms supports dynamic updates
 #
 # variable "config_role_arn" {
