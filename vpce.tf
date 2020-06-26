@@ -2,8 +2,9 @@ resource "aws_vpc_endpoint" "ec2" {
   vpc_id              = data.aws_vpc.vpc.id
   service_name        = "com.amazonaws.${var.region}.ec2"
   vpc_endpoint_type   = "Interface"
+  subnet_ids          = [var.subnet_id]
   security_group_ids  = [aws_security_group.allow_ec2_vpce.id]
-  private_dns_enabled = true
+  private_dns_enabled = false
 }
 
 resource "aws_security_group" "allow_ec2_vpce" {
