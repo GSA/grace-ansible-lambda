@@ -54,14 +54,6 @@ resource "aws_s3_bucket_object" "user_data" {
   kms_key_id = aws_kms_key.kms.arn
 }
 
-resource "aws_s3_bucket_object" "runner" {
-  bucket     = aws_s3_bucket.bucket.id
-  acl        = "private"
-  key        = "files/grace-ansible-runner.zip"
-  source     = var.runner_file
-  kms_key_id = aws_kms_key.kms.arn
-}
-
 resource "aws_s3_bucket_object" "ansible_key" {
   bucket     = aws_s3_bucket.bucket.id
   acl        = "private"
