@@ -49,7 +49,6 @@ resource "aws_s3_bucket_object" "user_data" {
     function   = local.app_name
     hosts_file = var.appenv
     site_file  = "site.yml"
-    key        = aws_s3_bucket_object.runner.key
   })
   kms_key_id = aws_kms_key.kms.arn
 }
