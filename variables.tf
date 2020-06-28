@@ -34,6 +34,12 @@ variable "keypair_name" {
   default     = ""
 }
 
+variable "key_file" {
+  type        = string
+  description = "(optional) The path to the private key to be used for ansible"
+  default     = "~/.ssh/id_rsa"
+}
+
 variable "subnet_id" {
   type        = string
   description = "(optional) The VPC Subnet ID where the EC2 should be placed"
