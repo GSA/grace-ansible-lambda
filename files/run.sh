@@ -11,4 +11,8 @@ ansible-playbook --private-key ${key_file} -u ${ec2_user} -i ${hosts_file} ${sit
 
 aws s3 rm --region ${region} s3://${bucket}/ansible_lock
 
-aws ec2 terminate-instances --region ${region} --instance-ids "$(curl http://169.254.169.254/latest/meta-data/instance-id)"
+instance=$(curl http://169.254.169.254/latest/meta-data/instance-id)
+
+aws s3 cp --region ${region} /var/log/clout-init-output.log "logs/run-$${instance}.log"
+
+aws ec2 terminate-instances --region ${region} --instance-ids $instance
