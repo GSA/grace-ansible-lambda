@@ -47,8 +47,8 @@ resource "aws_s3_bucket_object" "user_data" {
     role       = aws_iam_role.role.name
     bucket     = aws_s3_bucket.bucket.id
     function   = local.app_name
-    hosts_file = var.appenv
-    site_file  = "site.yml"
+    hosts_file = join("/", ["ansible", var.appenv])
+    site_file  = "ansible/site.yml"
     key_file   = var.key_file
   })
   kms_key_id = aws_kms_key.kms.arn
