@@ -13,6 +13,6 @@ aws s3 rm --region ${region} s3://${bucket}/ansible_lock
 
 instance=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 
-aws s3 cp --region ${region} /var/log/clout-init-output.log "logs/run-$${instance}.log"
+aws s3 cp --region ${region} /var/log/cloud-init-output.log "s3://${bucket}/logs/run-$${instance}.log"
 
 aws ec2 terminate-instances --region ${region} --instance-ids $instance
