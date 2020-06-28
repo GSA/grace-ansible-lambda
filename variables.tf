@@ -40,6 +40,12 @@ variable "key_file" {
   default     = "~/.ssh/id_rsa"
 }
 
+variable "ec2_user" {
+  type        = string
+  description = "(optional) The username ansible should use when ssh'ing"
+  default     = "ec2-user"
+}
+
 variable "subnet_id" {
   type        = string
   description = "(optional) The VPC Subnet ID where the EC2 should be placed"

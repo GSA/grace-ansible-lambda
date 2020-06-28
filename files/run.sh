@@ -7,7 +7,7 @@ cd /tmp
 
 aws s3 cp --region ${region} --recursive s3://${bucket}/ .
 
-ansible-playbook --private-key ${key_file} -i ${hosts_file} ${site_file}
+ansible-playbook --private-key ${key_file} -u ${ec2_user} -i ${hosts_file} ${site_file}
 
 aws s3 rm --region ${region} s3://${bucket}/ansible_lock
 
