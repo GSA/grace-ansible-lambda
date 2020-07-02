@@ -220,7 +220,7 @@ func existsLock(cfg client.ConfigProvider, bucket, key string) (time.Duration, b
 		Key:    aws.String(key),
 	})
 	if err == nil {
-		d := time.Now().Sub(aws.TimeValue(o.LastModified))
+		d := time.Since(aws.TimeValue(o.LastModified))
 		return d, true
 	}
 	return time.Nanosecond, false
