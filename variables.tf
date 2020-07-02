@@ -76,6 +76,11 @@ variable "source_file" {
   default     = "../release/grace-ansible-lambda.zip"
 }
 
+variable "max_lock_age_seconds" {
+  type    = string
+  default = "3600"
+}
+
 # TODO: uncomment when aws_iam_policy_document.kms supports dynamic updates
 #
 # variable "config_role_arn" {

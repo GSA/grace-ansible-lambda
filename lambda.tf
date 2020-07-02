@@ -4,7 +4,7 @@ resource "aws_lambda_function" "lambda" {
   description                    = "Creates an EC2 instance and executes Ansible playbooks"
   role                           = aws_iam_role.role.arn
   handler                        = local.lambda_handler
-  source_code_hash               = filesha256(var.source_file)
+  source_code_hash               = filebase64sha256(var.source_file)
   kms_key_arn                    = aws_kms_key.kms.arn
   reserved_concurrent_executions = 1
   runtime                        = "go1.x"
@@ -21,6 +21,7 @@ resource "aws_lambda_function" "lambda" {
       SUBNET_ID          = var.subnet_id
       SECURITY_GROUP_IDS = var.security_group_ids
       KEYPAIR_NAME       = var.keypair_name
+      MAX_LOCK_AGE_SECS  = var.max_lock_age_seconds
     }
   }
 

@@ -30,6 +30,7 @@ type Config struct {
 	SubnetID           string   `env:"SUBNET_ID" envDefault:""`
 	SecurityGroupIds   []string `env:"SECURITY_GROUP_IDS" envSeparator:","`
 	KeyPairName        string   `env:"KEYPAIR_NAME" envDefault:""`
+	MaxLockAgeSecs     int      `env:"MAX_LOCK_AGE_SECS" envDefault:"3600"`
 }
 
 // HasUserData returns true if both Config Bucket and Key are greater
@@ -143,7 +144,18 @@ func (a *App) associateProfile(cfg client.ConfigProvider, instanceID ...string) 
 }
 
 func (a *App) acquireLock(cfg client.ConfigProvider, bucket, key string) (bool, error) {
-	if existsLock(cfg, bucket, key) {
+	age, locked := existsLock(cfg, bucket, key)
+	if locked {
+		if age > time.Duration(a.cfg.MaxLockAgeSecs)*time.Second {
+			instanceID, err := readLock(cfg, bucket, key)
+			if err != nil {
+				return false, err
+			}
+			err = a.cleanup(&Payload{InstanceID: instanceID})
+			if err != nil {
+				return false, err
+			}
+		}
 		return false, nil
 	}
 
@@ -165,7 +177,8 @@ func (a *App) acquireLock(cfg client.ConfigProvider, bucket, key string) (bool, 
 }
 
 func (a *App) releaseLock(cfg client.ConfigProvider, bucket, key string) error {
-	if !existsLock(cfg, bucket, key) {
+	_, locked := existsLock(cfg, bucket, key)
+	if !locked {
 		return nil
 	}
 
@@ -200,13 +213,17 @@ func setLock(cfg client.ConfigProvider, bucket, key, data string) error {
 	return nil
 }
 
-func existsLock(cfg client.ConfigProvider, bucket, key string) bool {
+func existsLock(cfg client.ConfigProvider, bucket, key string) (time.Duration, bool) {
 	svc := s3.New(cfg)
-	_, err := svc.GetObject(&s3.GetObjectInput{
+	o, err := svc.GetObject(&s3.GetObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(key),
 	})
-	return err == nil
+	if err == nil {
+		d := time.Now().Sub(aws.TimeValue(o.LastModified))
+		return d, true
+	}
+	return time.Nanosecond, false
 }
 
 func readLock(cfg client.ConfigProvider, bucket, key string) (string, error) {
