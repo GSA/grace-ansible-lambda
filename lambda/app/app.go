@@ -124,7 +124,8 @@ func (a *App) startup() error {
 		}
 	}
 
-	return nil
+	// set lock contents to instanceID in case cleanup fails we don't want a hung lock
+	return setLock(sess, a.cfg.Bucket, a.cfg.Key, aws.StringValue(instance.InstanceId))
 }
 
 func (a *App) associateProfile(cfg client.ConfigProvider, instanceID ...string) error {
