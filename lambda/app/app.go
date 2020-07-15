@@ -29,7 +29,7 @@ type Config struct {
 	SubnetID           string   `env:"SUBNET_ID" envDefault:""`
 	SecurityGroupIds   []string `env:"SECURITY_GROUP_IDS" envSeparator:","`
 	KeyPairName        string   `env:"KEYPAIR_NAME" envDefault:""`
-	JobTimeoutSecs     int      `env:"JOB_TIMEOUT_SECS" envDefault:"3600"`
+	JobTimeoutSecs     int      `env:"JOB_TIMEOUT_SECS" envDefault:"3500"`
 }
 
 // HasUserData returns true if both Config Bucket and Key are greater
@@ -220,7 +220,11 @@ func (a *App) purgeStaleInstances(cfg client.ConfigProvider) error {
 		}
 	}
 
-	return removeEC2(cfg, staleIDs...)
+	if len(staleIDs) > 0 {
+		return removeEC2(cfg, staleIDs...)
+	}
+
+	return nil
 }
 
 func (a *App) getAnsibleInstances(cfg client.ConfigProvider) ([]*ec2.Instance, error) {

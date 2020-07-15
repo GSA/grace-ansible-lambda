@@ -78,7 +78,7 @@ variable "source_file" {
 
 variable "job_timeout_secs" {
   type    = string
-  default = "3600"
+  default = "3500"
 }
 
 # TODO: uncomment when aws_iam_policy_document.kms supports dynamic updates
