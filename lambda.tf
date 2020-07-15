@@ -21,7 +21,7 @@ resource "aws_lambda_function" "lambda" {
       SUBNET_ID          = var.subnet_id
       SECURITY_GROUP_IDS = var.security_group_ids
       KEYPAIR_NAME       = var.keypair_name
-      MAX_LOCK_AGE_SECS  = var.max_lock_age_seconds
+      JOB_TIMEOUT_SECS   = var.job_timeout_secs
     }
   }
 

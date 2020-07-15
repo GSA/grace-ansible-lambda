@@ -76,7 +76,7 @@ variable "source_file" {
   default     = "../release/grace-ansible-lambda.zip"
 }
 
-variable "max_lock_age_seconds" {
+variable "job_timeout_secs" {
   type    = string
   default = "3600"
 }

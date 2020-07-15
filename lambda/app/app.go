@@ -2,7 +2,6 @@
 package app
 
 import (
-	"bytes"
 	"context"
 	"encoding/base64"
 	"fmt"
@@ -30,7 +29,7 @@ type Config struct {
 	SubnetID           string   `env:"SUBNET_ID" envDefault:""`
 	SecurityGroupIds   []string `env:"SECURITY_GROUP_IDS" envSeparator:","`
 	KeyPairName        string   `env:"KEYPAIR_NAME" envDefault:""`
-	MaxLockAgeSecs     int      `env:"MAX_LOCK_AGE_SECS" envDefault:"3600"`
+	JobTimeoutSecs     int      `env:"JOB_TIMEOUT_SECS" envDefault:"3600"`
 }
 
 // HasUserData returns true if both Config Bucket and Key are greater
@@ -50,8 +49,6 @@ type App struct {
 	ctx *lambdacontext.LambdaContext
 	cfg *Config
 }
-
-var lockFileKey = "ansible_lock"
 
 // New creates a new App
 func New() (*App, error) {
@@ -82,14 +79,9 @@ func (a *App) startup() error {
 		return fmt.Errorf("failed to get AWS Session: %v", err)
 	}
 
-	locked, err := a.acquireLock(sess, a.cfg.Bucket, lockFileKey)
+	err = a.purgeStaleInstances(sess)
 	if err != nil {
-		return fmt.Errorf("failed to acquire lock: %v", err)
-	}
-
-	if !locked {
-		fmt.Printf("another lambda already has the ansible_lock\n")
-		return nil
+		return fmt.Errorf("failed to purge stale instances: %v", err)
 	}
 
 	if len(a.cfg.ImageID) == 0 {
@@ -124,8 +116,7 @@ func (a *App) startup() error {
 		}
 	}
 
-	// set lock contents to instanceID in case cleanup fails we don't want a hung lock
-	return setLock(sess, a.cfg.Bucket, a.cfg.Key, aws.StringValue(instance.InstanceId))
+	return nil
 }
 
 func (a *App) associateProfile(cfg client.ConfigProvider, instanceID ...string) error {
@@ -140,114 +131,6 @@ func (a *App) associateProfile(cfg client.ConfigProvider, instanceID ...string) 
 		if err != nil {
 			return fmt.Errorf("failed to associate instance profile: %v", err)
 		}
-	}
-	return nil
-}
-
-func (a *App) acquireLock(cfg client.ConfigProvider, bucket, key string) (bool, error) {
-	age, locked := existsLock(cfg, bucket, key)
-	if locked {
-		if age > time.Duration(a.cfg.MaxLockAgeSecs)*time.Second {
-			instanceID, err := readLock(cfg, bucket, key)
-			if err != nil {
-				return false, err
-			}
-			err = a.cleanup(&Payload{InstanceID: instanceID})
-			if err != nil {
-				return false, err
-			}
-		}
-		return false, nil
-	}
-
-	err := setLock(cfg, bucket, key, a.ctx.AwsRequestID)
-	if err != nil {
-		return false, err
-	}
-
-	reqID, err := readLock(cfg, bucket, key)
-	if err != nil {
-		return false, err
-	}
-
-	if reqID != a.ctx.AwsRequestID {
-		return false, nil
-	}
-
-	return true, nil
-}
-
-func (a *App) releaseLock(cfg client.ConfigProvider, bucket, key string) error {
-	_, locked := existsLock(cfg, bucket, key)
-	if !locked {
-		return nil
-	}
-
-	// TODO: We need a decent plan for identifying the startup/cleanup lambdas as unique
-	// We no longer know the original requestID so no point in comparing it. Just delete the lock
-	//
-	// reqID, err := readLock(cfg, bucket, key)
-	// if err != nil {
-	// 	return err
-	// }
-
-	// if reqID != a.ctx.AwsRequestID {
-	// 	return fmt.Errorf("failed cannot release lock as we are not the owner: %s -> %v", reqID, err)
-	// }
-
-	return removeLock(cfg, bucket, key)
-}
-
-func setLock(cfg client.ConfigProvider, bucket, key, data string) error {
-	uploader := s3manager.NewUploader(cfg)
-	buf := &bytes.Buffer{}
-	buf.WriteString(data)
-
-	_, err := uploader.Upload(&s3manager.UploadInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
-		Body:   buf,
-	})
-	if err != nil {
-		return fmt.Errorf("failed to upload file, %v", err)
-	}
-	return nil
-}
-
-func existsLock(cfg client.ConfigProvider, bucket, key string) (time.Duration, bool) {
-	svc := s3.New(cfg)
-	o, err := svc.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
-	})
-	if err == nil {
-		d := time.Since(aws.TimeValue(o.LastModified))
-		return d, true
-	}
-	return time.Nanosecond, false
-}
-
-func readLock(cfg client.ConfigProvider, bucket, key string) (string, error) {
-	svc := s3manager.NewDownloader(cfg)
-	buf := &aws.WriteAtBuffer{}
-	_, err := svc.Download(buf, &s3.GetObjectInput{
-		Bucket: &bucket,
-		Key:    &key,
-	})
-	if err != nil {
-		return "", fmt.Errorf("failed to download lock from %s/%s", bucket, key)
-	}
-	return string(buf.Bytes()), nil
-}
-
-func removeLock(cfg client.ConfigProvider, bucket, key string) error {
-	svc := s3.New(cfg)
-	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
-	})
-	if err != nil {
-		return fmt.Errorf("failed to remove lock: %v", err)
 	}
 	return nil
 }
@@ -281,6 +164,17 @@ func (a *App) createEC2(cfg client.ConfigProvider, userData string) (*ec2.Instan
 		InstanceType: aws.String(a.cfg.InstanceType),
 		MinCount:     aws.Int64(1),
 		MaxCount:     aws.Int64(1),
+		TagSpecifications: []*ec2.TagSpecification{
+			{
+				ResourceType: aws.String("instance"),
+				Tags: []*ec2.Tag{
+					{
+						Key:   aws.String("Name"),
+						Value: aws.String("ansible"),
+					},
+				},
+			},
+		},
 	}
 
 	sEnc := base64.StdEncoding.EncodeToString([]byte(userData))
@@ -301,6 +195,51 @@ func (a *App) createEC2(cfg client.ConfigProvider, userData string) (*ec2.Instan
 	}
 
 	return output.Instances[0], nil
+}
+
+func (a *App) purgeStaleInstances(cfg client.ConfigProvider) error {
+	instances, err := a.getAnsibleInstances(cfg)
+	if err != nil {
+		return err
+	}
+
+	var staleIDs []string
+	for _, i := range instances {
+		if time.Since(aws.TimeValue(i.LaunchTime)) > time.Duration(a.cfg.JobTimeoutSecs)*time.Second {
+			staleIDs = append(staleIDs, aws.StringValue(i.InstanceId))
+		}
+	}
+
+	return removeEC2(cfg, staleIDs...)
+}
+
+func (a *App) getAnsibleInstances(cfg client.ConfigProvider) ([]*ec2.Instance, error) {
+	svc := ec2.New(cfg)
+	input := &ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("instance-state-name"),
+				Values: aws.StringSlice([]string{"running", "pending"}),
+			},
+			{
+				Name:   aws.String("tag:Name"),
+				Values: aws.StringSlice([]string{"ansible"}),
+			},
+		},
+	}
+	var instances []*ec2.Instance
+	err := svc.DescribeInstancesPages(input, func(page *ec2.DescribeInstancesOutput, lastPage bool) bool {
+		for _, r := range page.Reservations {
+			instances = append(instances, r.Instances...)
+		}
+		return !lastPage
+	})
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to get ansible instances: %v", err)
+	}
+
+	return instances, nil
 }
 
 func (a *App) waitForEC2(cfg client.ConfigProvider, instanceID ...string) error {
@@ -335,13 +274,6 @@ func (a *App) cleanup(p *Payload) error {
 	if err != nil {
 		return fmt.Errorf("failed to get AWS Session: %v", err)
 	}
-
-	defer func() {
-		err := a.releaseLock(sess, a.cfg.Bucket, lockFileKey)
-		if err != nil {
-			fmt.Printf("failed to release lock: %v\n", err)
-		}
-	}()
 
 	err = removeEC2(sess, p.InstanceID)
 	if err != nil {

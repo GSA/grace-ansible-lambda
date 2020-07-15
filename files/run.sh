@@ -14,8 +14,6 @@ chown 400 ${key_file}
 
 ansible-playbook --private-key ${key_file} -u ${ec2_user} -i ${hosts_file} ${site_file}
 
-aws s3 rm --region ${region} s3://${bucket}/ansible_lock
-
 instance=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 
 aws s3 cp --region ${region} /var/log/cloud-init-output.log "s3://${bucket}/logs/run-$${instance}.log"
