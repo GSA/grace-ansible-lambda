@@ -85,6 +85,7 @@ data "aws_iam_policy_document" "policy" {
       "ec2:DescribeVolumes",
       "ec2:DescribeTags",
       "ec2:DescribeInstances",
+      "ec2:RunInstances",
       "logs:PutLogEvents",
       "logs:DescribeLogStreams",
       "logs:DescribeLogGroups",
