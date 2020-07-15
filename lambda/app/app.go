@@ -84,6 +84,16 @@ func (a *App) startup() error {
 		return fmt.Errorf("failed to purge stale instances: %v", err)
 	}
 
+	instances, err := a.getAnsibleInstances(sess)
+	if err != nil {
+		return fmt.Errorf("failed to list instances: %v", err)
+	}
+
+	if len(instances) > 0 {
+		fmt.Printf("instances are already running: %v\n", instances)
+		return nil
+	}
+
 	if len(a.cfg.ImageID) == 0 {
 		a.cfg.ImageID, err = getLatestImageID(sess)
 		if err != nil {
