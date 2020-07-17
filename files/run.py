@@ -1,10 +1,10 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 import os
 import boto3
 import yaml
 import json
-import urllib.request
+import urllib2
 
 def create_secrets_yaml(path):
     secrets = get_secrets_dict()
@@ -82,7 +82,7 @@ if __name__ == '__main__':
     os.system('chown 400 ${key_file}')
     os.system('ansible-playbook --private-key ${key_file} -u ${ec2_user} -i ${hosts_file} ${site_file}')
 
-    instance_id = urllib.request.urlopen('http://169.254.169.254/latest/meta-data/instance-id').read().decode()
+    instance_id = urllib2.urlopen('http://169.254.169.254/latest/meta-data/instance-id').read()
 
     os.system('aws s3 cp --region ${region} /var/log/cloud-init-output.log "s3://${bucket}/logs/run-' + instance_id + '.log")
     os.system('aws ec2 terminate-instances --region ${region} --instance-ids ' + instance_id)
