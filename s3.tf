@@ -41,8 +41,8 @@ resource "aws_s3_bucket_public_access_block" "bucket" {
 resource "aws_s3_bucket_object" "user_data" {
   bucket = aws_s3_bucket.bucket.id
   acl    = "private"
-  key    = "files/run.py"
-  content = templatefile("${path.module}/files/run.py", {
+  key    = "files/run.sh"
+  content = templatefile("${path.module}/files/run.sh", {
     region     = var.region
     role       = aws_iam_role.role.name
     bucket     = aws_s3_bucket.bucket.id
@@ -52,6 +52,14 @@ resource "aws_s3_bucket_object" "user_data" {
     key_file   = var.key_file
     ec2_user   = var.ec2_user
   })
+  kms_key_id = aws_kms_key.kms.arn
+}
+
+resource "aws_s3_bucket_object" "create_secrets" {
+  bucket     = aws_s3_bucket.bucket.id
+  acl        = "private"
+  key        = "files/create_secrets.py"
+  source     = "${path.module}/files/create_secrets.py"
   kms_key_id = aws_kms_key.kms.arn
 }
 

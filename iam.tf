@@ -83,11 +83,17 @@ data "aws_iam_policy_document" "policy" {
   statement {
     effect = "Allow"
     actions = [
-      "secretsmanager:DescribeSecret",
-      "secretsmanager:List*",
       "secretsmanager:GetSecretValue"
     ]
-    resources = ["arn:aws:secretsmanager:${var.region}:${local.account_id}:ansible-*"]
+    resources = ["arn:aws:secretsmanager:${var.region}:${local.account_id}:secret:ansible-*"]
+  }
+  statement {
+    effect = "Allow"
+    actions = [
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:List*",
+    ]
+    resources = "*"
   }
   statement {
     effect = "Allow"

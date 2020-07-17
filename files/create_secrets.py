@@ -8,6 +8,10 @@ import urllib2
 
 def create_secrets_yaml(path):
     secrets = get_secrets_dict()
+
+    for s in secrets:
+        print('exporting secret {s} to secrets.yaml')
+
     f = open(path, 'w')
     yaml.dump(secrets, f)
 
@@ -64,25 +68,9 @@ def get_secret_ids(secrets, matcher):
     secret_ids = []
     for s in secrets:
         if matcher(s):
-            secret_ids.append(
-                s['ARN']
-                #list(s['SecretVersionsToStages'].keys())[0]
-            )
+            secret_ids.append(s['ARN'])
     return secret_ids
 
 if __name__ == '__main__':
     print('creating secrets.yaml')
     create_secrets_yaml('/tmp/ansible/secrets.yaml')
-
-    os.system('sudo yum -y install awscli')
-    os.system('amazon-linux-extras install ansible2 -y')
-    os.system('cd /tmp')
-    os.system('aws s3 cp --region ${region} --recursive s3://${bucket}/ .')
-    os.system('aws s3 cp --region ${region} s3://${bucket}/files/id_rsa ${key_file}')
-    os.system('chown 400 ${key_file}')
-    os.system('ansible-playbook --private-key ${key_file} -u ${ec2_user} -i ${hosts_file} ${site_file}')
-
-    instance_id = urllib2.urlopen('http://169.254.169.254/latest/meta-data/instance-id').read()
-
-    os.system('aws s3 cp --region ${region} /var/log/cloud-init-output.log "s3://${bucket}/logs/run-' + instance_id + '.log"')
-    os.system('aws ec2 terminate-instances --region ${region} --instance-ids ' + instance_id)

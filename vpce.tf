@@ -7,6 +7,15 @@ resource "aws_vpc_endpoint" "ec2" {
   private_dns_enabled = true
 }
 
+resource "aws_vpc_endpoint" "secretsmanager" {
+  vpc_id              = data.aws_vpc.vpc.id
+  service_name        = "com.amazonaws.${var.region}.secretsmanager"
+  vpc_endpoint_type   = "Interface"
+  subnet_ids          = [var.subnet_id]
+  security_group_ids  = [aws_security_group.allow_vpce.id]
+  private_dns_enabled = true
+}
+
 resource "aws_security_group" "allow_vpce" {
   name        = "allow_vpce"
   description = "Allow access to the VPCE"
