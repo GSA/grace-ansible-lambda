@@ -81,7 +81,7 @@ data "aws_iam_policy_document" "policy" {
     resources = ["*"]
   }
   statement {
-    effect  = "Allow"
+    effect = "Allow"
     actions = [
       "secretsmanager:DescribeSecret",
       "secretsmanager:List*",
