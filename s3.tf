@@ -41,8 +41,8 @@ resource "aws_s3_bucket_public_access_block" "bucket" {
 resource "aws_s3_bucket_object" "user_data" {
   bucket = aws_s3_bucket.bucket.id
   acl    = "private"
-  key    = "files/run.sh"
-  content = templatefile("${path.module}/files/run.sh", {
+  key    = "files/run.py"
+  content = templatefile("${path.module}/files/run.py", {
     region     = var.region
     role       = aws_iam_role.role.name
     bucket     = aws_s3_bucket.bucket.id

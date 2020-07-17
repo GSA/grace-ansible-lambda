@@ -81,6 +81,15 @@ data "aws_iam_policy_document" "policy" {
     resources = ["*"]
   }
   statement {
+    effect  = "Allow"
+    actions = [
+      "secretsmanager:DescribeSecret",
+      "secretsmanager:List*",
+      "secretsmanager:GetSecretValue"
+    ]
+    resources = ["arn:aws:secretsmanager:${var.region}:${local.account_id}:ansible-*"]
+  }
+  statement {
     effect = "Allow"
     actions = [
       "cloudwatch:PutMetricData",
