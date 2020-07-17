@@ -76,11 +76,18 @@ workflows:
   version: 2
   build:
     jobs:
-      - validate_terraform
       - tfsec
       - lint_lambda
-      - test_lambda
+      - validate_terraform:
+          requires:
+            - tfsec
+      - test_lambda:
+          requires:
+            - lint_lambda
       - release_lambda:
+          requires:
+            - validate_terraform
+            - test_lambda
           filters:
             tags:
               only: /^v.*/
