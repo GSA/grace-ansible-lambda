@@ -30,7 +30,7 @@ def is_json(str):
     return chars.get(ord(str[0]), False)
 
 def get_secret_dict(secret_ids):
-    client: botostubs.SecretsManager = boto3.client('secretsmanager')
+    client = boto3.client('secretsmanager')
 
     secrets = {}
     for id in secret_ids:
@@ -44,7 +44,7 @@ def get_secret_dict(secret_ids):
     return secrets
 
 def list_secrets(matcher):
-    client: botostubs.SecretsManager = boto3.client('secretsmanager')
+    client = boto3.client('secretsmanager')
 
     token = ''
     secret_ids = []
@@ -84,5 +84,5 @@ if __name__ == '__main__':
 
     instance_id = urllib2.urlopen('http://169.254.169.254/latest/meta-data/instance-id').read()
 
-    os.system('aws s3 cp --region ${region} /var/log/cloud-init-output.log "s3://${bucket}/logs/run-' + instance_id + '.log")
+    os.system('aws s3 cp --region ${region} /var/log/cloud-init-output.log "s3://${bucket}/logs/run-' + instance_id + '.log"')
     os.system('aws ec2 terminate-instances --region ${region} --instance-ids ' + instance_id)
