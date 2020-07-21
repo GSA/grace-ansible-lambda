@@ -63,6 +63,14 @@ resource "aws_s3_bucket_object" "create_secrets" {
   kms_key_id = aws_kms_key.kms.arn
 }
 
+resource "aws_s3_bucket_object" "aws_events_callback_plugin" {
+  bucket     = aws_s3_bucket.bucket.id
+  acl        = "private"
+  key        = "files/aws_events.py"
+  source     = "${path.module}/files/aws_events.py"
+  kms_key_id = aws_kms_key.kms.arn
+}
+
 resource "aws_s3_bucket_object" "ansible_key" {
   bucket     = aws_s3_bucket.bucket.id
   acl        = "private"
