@@ -10,7 +10,7 @@ def create_secrets_yaml(path):
     secrets = get_secrets_dict()
 
     for s in secrets:
-        print('exporting secret {s} to secrets.yaml')
+        print('exporting secret ' + s + ' to secrets.yaml')
 
     f = open(path, 'w')
     yaml.dump(secrets, f)

@@ -21,7 +21,8 @@ import (
 // Config holds all variables read from the ENV
 type Config struct {
 	Region             string   `env:"REGION" envDefault:"us-east-1"`
-	ImageID            string   `env:"IMAGE_ID" envDefault:""`
+	ImageID            string   `env:"IMAGE_ID" envDefault:"amzn2-hvm-*-x86_64-gp2"`
+	AmiSearchTerm      string   `env:"AMI_SEARCH_TERM" envDefault:""`
 	InstanceType       string   `env:"INSTANCE_TYPE" envDefault:"t2.micro"`
 	InstanceProfileArn string   `env:"PROFILE_ARN" envDefault:""`
 	Bucket             string   `env:"USERDATA_BUCKET" envDefault:""`
@@ -95,7 +96,7 @@ func (a *App) startup() error {
 	}
 
 	if len(a.cfg.ImageID) == 0 {
-		a.cfg.ImageID, err = getLatestImageID(sess)
+		a.cfg.ImageID, err = a.getLatestImageID(sess)
 		if err != nil {
 			return err
 		}
@@ -297,6 +298,28 @@ func (a *App) cleanup(p *Payload) error {
 	return nil
 }
 
+func (a *App) getLatestImageID(cfg client.ConfigProvider) (string, error) {
+	svc := ec2.New(cfg)
+
+	filters := getFilters(map[string]string{
+		"name":                             a.cfg.AmiSearchTerm,
+		"architecture":                     "x86_64",
+		"virtualization-type":              "hvm",
+		"block-device-mapping.volume-type": "gp2",
+	})
+
+	output, err := svc.DescribeImages(&ec2.DescribeImagesInput{
+		Filters: filters,
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to get Image ID: %v", err)
+	}
+
+	latest := filterLatestImageID(output.Images)
+
+	return latest, nil
+}
+
 func getFilters(m map[string]string) (filters []*ec2.Filter) {
 	for k, v := range m {
 		filters = append(filters, &ec2.Filter{
@@ -330,28 +353,6 @@ func filterLatestImageID(images []*ec2.Image) (imageID string) {
 		imageID = aws.StringValue(selected.ImageId)
 	}
 	return
-}
-
-func getLatestImageID(cfg client.ConfigProvider) (string, error) {
-	svc := ec2.New(cfg)
-
-	filters := getFilters(map[string]string{
-		"name":                             "amzn2-*",
-		"architecture":                     "x86_64",
-		"virtualization-type":              "hvm",
-		"block-device-mapping.volume-type": "gp2",
-	})
-
-	output, err := svc.DescribeImages(&ec2.DescribeImagesInput{
-		Filters: filters,
-	})
-	if err != nil {
-		return "", fmt.Errorf("failed to get Image ID: %v", err)
-	}
-
-	latest := filterLatestImageID(output.Images)
-
-	return latest, nil
 }
 
 func removeEC2(cfg client.ConfigProvider, instanceID ...string) error {
