@@ -22,7 +22,7 @@ import (
 type Config struct {
 	Region             string   `env:"REGION" envDefault:"us-east-1"`
 	ImageID            string   `env:"IMAGE_ID" envDefault:""`
-	AmiSearchTerm      string   `env:"AMI_SEARCH_TERM" envDefault:"amzn2-hvm-*-x86_64-gp2"`
+	AmiSearchTerm      string   `env:"AMI_SEARCH_TERM" envDefault:"amzn2-ami-hvm-*-x86_64-gp2"`
 	AmiOwnerAlias      string   `env:"AMI_OWNER_ALIAS" envDefault:"amazon"`
 	InstanceType       string   `env:"INSTANCE_TYPE" envDefault:"t2.micro"`
 	InstanceProfileArn string   `env:"PROFILE_ARN" envDefault:""`
@@ -171,6 +171,7 @@ func nilIfEmpty(value string) *string {
 func (a *App) createEC2(cfg client.ConfigProvider, userData string) (*ec2.Instance, error) {
 	svc := ec2.New(cfg)
 
+	fmt.Printf("creating Ansible EC2 with ImageID: %s\n", a.cfg.ImageID)
 	input := &ec2.RunInstancesInput{
 		ImageId:      aws.String(a.cfg.ImageID),
 		InstanceType: aws.String(a.cfg.InstanceType),

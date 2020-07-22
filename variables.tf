@@ -25,7 +25,7 @@ variable "image_id" {
 variable "ami_search_term" {
   type        = string
   description = "(optional) The search term used for the Amazon Machine Image name field"
-  default     = "amzn2-hvm-*-x86_64-gp2"
+  default     = "amzn2-ami-hvm-*-x86_64-gp2"
 }
 
 variable "ami_owner_alias" {
