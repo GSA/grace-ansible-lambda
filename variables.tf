@@ -26,7 +26,7 @@ variable "ami_search_term" {
   type        = string
   description = "(optional) The search term used for the Amazon Machine Image name field"
   default     = "amzn2-hvm-*-x86_64-gp2"
-} 
+}
 
 variable "instance_type" {
   type        = string
