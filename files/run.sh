@@ -18,7 +18,10 @@ aws s3 cp --region ${region} s3://${bucket}/files/aws_events.py /usr/share/ansib
 
 AWS_DEFAULT_REGION=${region} python create_secrets.py
 
-ansible-playbook --private-key ${key_file} -u ${ec2_user} -e @/tmp/ansible/secrets.yaml -i ${hosts_file} ${site_file}
+# If /tmp/ansible/.env exists, then export all variables excluding lines beginning with #
+[ -f /tmp/ansible/.env ] && export $(egrep -v '^#' /tmp/ansible/.env | xargs)
+
+ansible-playbook -v --private-key ${key_file} -u ${ec2_user} -e @/tmp/ansible/secrets.yaml -i ${hosts_file} ${site_file}
 
 instance=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 
