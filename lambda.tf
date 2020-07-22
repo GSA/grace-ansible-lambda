@@ -15,6 +15,7 @@ resource "aws_lambda_function" "lambda" {
       REGION             = var.region
       IMAGE_ID           = var.image_id
       AMI_SEARCH_TERM    = var.ami_search_term
+      AMI_OWNER_ALIAS    = var.ami_owner_alias
       INSTANCE_TYPE      = var.instance_type
       PROFILE_ARN        = aws_iam_instance_profile.profile.arn
       USERDATA_BUCKET    = aws_s3_bucket.bucket.id

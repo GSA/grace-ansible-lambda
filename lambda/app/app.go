@@ -21,8 +21,9 @@ import (
 // Config holds all variables read from the ENV
 type Config struct {
 	Region             string   `env:"REGION" envDefault:"us-east-1"`
-	ImageID            string   `env:"IMAGE_ID" envDefault:"amzn2-hvm-*-x86_64-gp2"`
-	AmiSearchTerm      string   `env:"AMI_SEARCH_TERM" envDefault:""`
+	ImageID            string   `env:"IMAGE_ID" envDefault:""`
+	AmiSearchTerm      string   `env:"AMI_SEARCH_TERM" envDefault:"amzn2-hvm-*-x86_64-gp2"`
+	AmiOwnerAlias      string   `env:"AMI_OWNER_ALIAS" envDefault:"amazon"`
 	InstanceType       string   `env:"INSTANCE_TYPE" envDefault:"t2.micro"`
 	InstanceProfileArn string   `env:"PROFILE_ARN" envDefault:""`
 	Bucket             string   `env:"USERDATA_BUCKET" envDefault:""`
@@ -315,7 +316,7 @@ func (a *App) getLatestImageID(cfg client.ConfigProvider) (string, error) {
 		return "", fmt.Errorf("failed to get Image ID: %v", err)
 	}
 
-	latest := filterLatestImageID(output.Images)
+	latest := filterLatestImageID(filterByOwnerAlias(a.cfg.AmiOwnerAlias, output.Images))
 
 	return latest, nil
 }
@@ -328,6 +329,16 @@ func getFilters(m map[string]string) (filters []*ec2.Filter) {
 		})
 	}
 	return
+}
+
+func filterByOwnerAlias(ownerAlias string, images []*ec2.Image) []*ec2.Image {
+	var filtered []*ec2.Image
+	for _, i := range images {
+		if aws.StringValue(i.ImageOwnerAlias) == ownerAlias {
+			filtered = append(filtered, i)
+		}
+	}
+	return filtered
 }
 
 func filterLatestImageID(images []*ec2.Image) (imageID string) {

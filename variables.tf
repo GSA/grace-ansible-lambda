@@ -28,6 +28,12 @@ variable "ami_search_term" {
   default     = "amzn2-hvm-*-x86_64-gp2"
 }
 
+variable "ami_owner_alias" {
+  type        = string
+  description = "(optional) The owner alias for the Amazon Machine Image"
+  default     = "amazon"
+}
+
 variable "instance_type" {
   type        = string
   description = "(optional) The instance type to use for the EC2 (default: t2.micro)"
@@ -80,6 +86,12 @@ variable "source_file" {
   type        = string
   description = "(optional) full or relative path to zipped binary of lambda handler"
   default     = "../release/grace-ansible-lambda.zip"
+}
+
+variable "job_trigger_file" {
+  type        = string
+  description = "(optional) The path to the S3 bucket file that changes on push in CI/CD"
+  default     = "ansible/.gitkeep"
 }
 
 variable "job_timeout_secs" {
