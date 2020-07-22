@@ -86,6 +86,12 @@ func (a *App) startup() error {
 		return fmt.Errorf("failed to purge stale instances: %v", err)
 	}
 
+	count, err := a.getInstanceCount(sess)
+	if count == 0 {
+		fmt.Println("There are no instances running, skipping ansible execution")
+		return nil
+	}
+
 	instances, err := a.getAnsibleInstances(sess)
 	if err != nil {
 		return fmt.Errorf("failed to list instances: %v", err)
@@ -230,8 +236,23 @@ func (a *App) purgeStaleInstances(cfg client.ConfigProvider) error {
 	return nil
 }
 
+func (a *App) getInstanceCount(cfg client.ConfigProvider) (int, error) {
+	input := &ec2.DescribeInstancesInput{
+		Filters: []*ec2.Filter{
+			{
+				Name:   aws.String("instance-state-name"),
+				Values: aws.StringSlice([]string{"running", "pending"}),
+			},
+		},
+	}
+	all, err := describeInstances(cfg, input)
+	if err != nil {
+		return 0, err
+	}
+	return len(all), nil
+}
+
 func (a *App) getAnsibleInstances(cfg client.ConfigProvider) ([]*ec2.Instance, error) {
-	svc := ec2.New(cfg)
 	input := &ec2.DescribeInstancesInput{
 		Filters: []*ec2.Filter{
 			{
@@ -244,6 +265,12 @@ func (a *App) getAnsibleInstances(cfg client.ConfigProvider) ([]*ec2.Instance, e
 			},
 		},
 	}
+
+	return describeInstances(cfg, input)
+}
+
+func describeInstances(cfg client.ConfigProvider, input *ec2.DescribeInstancesInput) ([]*ec2.Instance, error) {
+	svc := ec2.New(cfg)
 	var instances []*ec2.Instance
 	err := svc.DescribeInstancesPages(input, func(page *ec2.DescribeInstancesOutput, lastPage bool) bool {
 		for _, r := range page.Reservations {
@@ -253,7 +280,7 @@ func (a *App) getAnsibleInstances(cfg client.ConfigProvider) ([]*ec2.Instance, e
 	})
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get ansible instances: %v", err)
+		return nil, fmt.Errorf("failed to get instances: %v", err)
 	}
 
 	return instances, nil
