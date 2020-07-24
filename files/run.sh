@@ -13,8 +13,6 @@ aws s3 cp --region ${region} s3://${bucket}/files/id_rsa ${key_file}
 chown 400 ${key_file}
 
 aws s3 cp --region ${region} s3://${bucket}/files/create_secrets.py create_secrets.py
-mkdir -p /usr/share/ansible/plugins/callback
-aws s3 cp --region ${region} s3://${bucket}/files/aws_events.py /usr/share/ansible/plugins/callback
 
 AWS_DEFAULT_REGION=${region} python create_secrets.py
 
