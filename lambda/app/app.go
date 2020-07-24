@@ -87,6 +87,9 @@ func (a *App) startup() error {
 	}
 
 	count, err := a.getInstanceCount(sess)
+	if err != nil {
+		return fmt.Errorf("failed to get ec2 instances: %v", err)
+	}
 	if count == 0 {
 		fmt.Println("There are no instances running, skipping ansible execution")
 		return nil

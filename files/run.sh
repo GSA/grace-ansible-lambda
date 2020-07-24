@@ -12,6 +12,18 @@ aws s3 cp --region ${region} --recursive s3://${bucket}/ .
 aws s3 cp --region ${region} s3://${bucket}/files/id_rsa ${key_file}
 chown 400 ${key_file}
 
+# aws s3 cp --region ${region} s3://${bucket}/files/python-xmltodict-0.9.0-1.el7.noarch.rpm python-xmltodict-0.9.0-1.el7.noarch.rpm
+# rpm -i /tmp/python-xmltodict-0.9.0-1.el7.noarch.rpm
+
+# aws s3 cp --region ${region} s3://${bucket}/files/python2-ntlm-auth-1.1.0-1.el7.noarch.rpm python2-ntlm-auth-1.1.0-1.el7.noarch.rpm
+# rpm -i /tmp/python2-ntlm-auth-1.1.0-1.el7.noarch.rpm
+
+# aws s3 cp --region ${region} s3://${bucket}/files/python2-requests_ntlm-1.1.0-1.el7.noarch.rpm python2-requests_ntlm-1.1.0-1.el7.noarch.rpm
+# rpm -i /tmp/python2-requests_ntlm-1.1.0-1.el7.noarch.rpm
+
+# aws s3 cp --region ${region} s3://${bucket}/files/python2-winrm-0.3.0-1.el7.noarch.rpm python2-winrm-0.3.0-1.el7.noarch.rpm
+# rpm -i /tmp/python2-winrm-0.3.0-1.el7.noarch.rpm
+
 aws s3 cp --region ${region} s3://${bucket}/files/create_secrets.py create_secrets.py
 
 AWS_DEFAULT_REGION=${region} python create_secrets.py
