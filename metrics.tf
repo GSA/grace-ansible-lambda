@@ -52,7 +52,7 @@ resource "aws_cloudwatch_log_metric_filter" "all_skipped" {
 
 resource "aws_cloudwatch_log_metric_filter" "all_unreachable" {
   name           = "all_unreachable"
-  pattern        = "{($.detail-type = ansible-run-report) && ($.detail.unreachable == true)}"
+  pattern        = "{($.detail-type = ansible-run-report) && ($.detail.unreachable = true)}"
   log_group_name = aws_cloudwatch_log_group.ansible.name
 
   metric_transformation {
