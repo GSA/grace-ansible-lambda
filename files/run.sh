@@ -28,6 +28,10 @@ aws s3 cp --region ${region} s3://${bucket}/files/create_secrets.py create_secre
 
 AWS_DEFAULT_REGION=${region} python create_secrets.py
 
+mkdir -p /tmp/ansible/callback_plugins
+
+aws s3 cp --region ${region} s3://${bucket}/files/plugin.py /tmp/ansible/callback_plugins/plugin.py
+
 # If /tmp/ansible/.env exists, then export all variables excluding lines beginning with #
 [ -f /tmp/ansible/.env ] && export $(egrep -v '^#' /tmp/ansible/.env | xargs)
 

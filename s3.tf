@@ -47,7 +47,7 @@ resource "aws_s3_bucket_object" "user_data" {
     role       = aws_iam_role.role.name
     bucket     = aws_s3_bucket.bucket.id
     function   = local.app_name
-    hosts_file = join("/", ["ansible", var.appenv])
+    hosts_file = join("/", ["ansible", var.appenv]) # In development this is: ansible/development
     site_file  = "ansible/site.yml"
     key_file   = var.key_file
     ec2_user   = var.ec2_user
@@ -62,6 +62,15 @@ resource "aws_s3_bucket_object" "create_secrets" {
   source     = "${path.module}/files/create_secrets.py"
   kms_key_id = aws_kms_key.kms.arn
 }
+
+resource "aws_s3_bucket_object" "plugin" {
+  bucket     = aws_s3_bucket.bucket.id
+  acl        = "private"
+  key        = "files/plugin.py"
+  source     = "${path.module}/files/plugin.py"
+  kms_key_id = aws_kms_key.kms.arn
+}
+
 
 resource "aws_s3_bucket_object" "ansible_key" {
   bucket     = aws_s3_bucket.bucket.id

@@ -9,3 +9,7 @@ resource "aws_cloudwatch_event_target" "schedule" {
   target_id = local.app_name
   arn       = aws_lambda_function.lambda.arn
 }
+
+resource "aws_cloudwatch_log_group" "ansible" {
+  name = "/aws/events/ansible"
+}

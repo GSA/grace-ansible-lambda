@@ -76,6 +76,7 @@ data "aws_iam_policy_document" "policy" {
       "logs:CreateLogGroup",
       "logs:CreateLogStream",
       "logs:PutLogEvents",
+      "events:PutEvents",
       "s3:ListAllMyBuckets"
     ]
     resources = ["*"]
@@ -102,6 +103,7 @@ data "aws_iam_policy_document" "policy" {
       "ec2:DescribeVolumes",
       "ec2:DescribeTags",
       "ec2:DescribeInstances",
+      "events:PutEvents",
       "logs:PutLogEvents",
       "logs:DescribeLogStreams",
       "logs:DescribeLogGroups",
