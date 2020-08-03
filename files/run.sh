@@ -35,7 +35,7 @@ aws s3 cp --region ${region} s3://${bucket}/files/plugin.py /tmp/ansible/callbac
 # If /tmp/ansible/.env exists, then export all variables excluding lines beginning with #
 [ -f /tmp/ansible/.env ] && export $(egrep -v '^#' /tmp/ansible/.env | xargs)
 
-ansible-playbook -v --private-key ${key_file} -u ${ec2_user} -e @/tmp/ansible/secrets.yaml -i ${hosts_file} ${site_file}
+AWS_DEFAULT_REGION=${region} ansible-playbook -v --private-key ${key_file} -u ${ec2_user} -e @/tmp/ansible/secrets.yaml -i ${hosts_file} ${site_file}
 
 instance=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 
