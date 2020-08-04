@@ -150,7 +150,6 @@ class CallbackModule(CallbackBase):
         report.inc_stat(state, 1)
 
         action_args = self._pop_keys_by_prefix(result._task_fields['args'])
-        action_args = json.dumps(action_args)
         report.add_task(state, str(result._task), str(result._task_fields['action']), action_args)
 
         print(hostname)
