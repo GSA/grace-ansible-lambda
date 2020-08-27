@@ -41,4 +41,4 @@ instance=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 
 aws s3 cp --region ${region} /var/log/cloud-init-output.log "s3://${bucket}/logs/run-$${instance}.log"
 
-aws ec2 terminate-instances --region ${region} --instance-ids $instance
+#aws ec2 terminate-instances --region ${region} --instance-ids $instance
