@@ -13,7 +13,7 @@ def create_secrets_yaml(path):
         print('exporting secret ' + s + ' to secrets.yaml')
 
     f = open(path, 'w')
-    yaml.dump(secrets, f)
+    yaml.safe_dump(secrets, f, explicit_start=True)
 
 secret_prefix = 'ansible-'
 
