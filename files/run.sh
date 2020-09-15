@@ -9,8 +9,14 @@ cd /tmp
 
 aws s3 cp --region ${region} --recursive s3://${bucket}/ .
 
-aws s3 cp --region ${region} s3://${bucket}/files/id_rsa ${key_file}
-chown 400 ${key_file}
+aws secretsmanager get-secret-value --secret-id ansible-key-pairs | jq '.SecretString' | sed 's/"//g' | base64 -Di - -o ~/.ssh/current_id_rsa
+aws secretsmanager get-secret-value --secret-id ansible-key-pairs --version-stage AWSPREVIOUS | jq '.SecretString' | sed 's/"//g' | base64 -Di - -o ~/.ssh/previous_id_rsa
+chmod 400 ~/.ssh/current_id_rsa
+chmod 400 ~/.ssh/previous_id_rsa
+ssh-agent
+ssh-add ~/.ssh/current_id_rsa ~/.ssh/previous_id_rsa
+ssh-keygen -l -f ~/.ssh/current_id_rsa > ~/.ssh/current_id_rsa.pub
+ssh-keygen -l -f ~/.ssh/previous_id_rsa > ~/.ssh/previous_id_rsa.pub
 
 # aws s3 cp --region ${region} s3://${bucket}/files/python-xmltodict-0.9.0-1.el7.noarch.rpm python-xmltodict-0.9.0-1.el7.noarch.rpm
 # rpm -i /tmp/python-xmltodict-0.9.0-1.el7.noarch.rpm
@@ -35,7 +41,7 @@ aws s3 cp --region ${region} s3://${bucket}/files/plugin.py /tmp/ansible/callbac
 # If /tmp/ansible/.env exists, then export all variables excluding lines beginning with #
 [ -f /tmp/ansible/.env ] && export $(egrep -v '^#' /tmp/ansible/.env | xargs)
 
-AWS_DEFAULT_REGION=${region} ansible-playbook -v --private-key ${key_file} -u ${ec2_user} -e @/tmp/ansible/secrets.yaml -i ${hosts_file} ${site_file}
+AWS_DEFAULT_REGION=${region} ansible-playbook -v -u ${ec2_user} -e @/tmp/ansible/secrets.yaml -i ${hosts_file} ${site_file}
 
 instance=$(curl http://169.254.169.254/latest/meta-data/instance-id)
 

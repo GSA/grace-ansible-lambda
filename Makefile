@@ -6,9 +6,9 @@ GOBIN := $(GOPATH)/bin
 TFSEC := $(GOBIN)/tfsec
 
 .PHONY: precommit test deploy check lint_lambda test_lambda build_lambda release_lambda validate_terraform init_terraform apply_terraform apply_terraform_tests destroy_terraform_tests clean
-test: test_lambda validate_terraform
+test: test_lambda validate_terraform build_rotate_keypair
 
-deploy: build_lambda
+deploy: build_lambda build_rotate_keypair
 
 check: precommit
 ifeq ($(strip $(TF_VAR_appenv)),)
@@ -27,8 +27,17 @@ test_lambda: precommit
 build_lambda: precommit
 	make -C lambda build
 
-release_lambda: precommit
+release: precommit clean build_rotate_keypair
 	make -C lambda release
+
+lint_rotate_keypair: precommit
+	make -C rotate_keypair lint
+
+test_rotate_keypair: precommit
+	make -C rotate_keypair test
+
+build_rotate_keypair: precommit
+	make -C rotate_keypair build
 
 validate_terraform: init_terraform $(TFSEC)
 	terraform validate
@@ -49,7 +58,7 @@ destroy_terraform_tests:
 	make -C tests destroy
 
 clean: precommit
-	make -C lambda clean
+	rm -rf release
 
 precommit:
 ifneq ($(strip $(hooksPath)),.github/hooks)
