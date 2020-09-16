@@ -6,7 +6,8 @@ data "aws_iam_policy_document" "role" {
       type = "Service"
       identifiers = [
         "ec2.amazonaws.com",
-        "lambda.amazonaws.com"
+        "lambda.amazonaws.com",
+        "secretsmanager.amazonaws.com"
       ]
     }
   }
