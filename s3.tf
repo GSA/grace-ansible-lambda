@@ -48,7 +48,6 @@ resource "aws_s3_bucket_object" "user_data" {
     function   = local.app_name
     hosts_file = join("/", ["ansible", var.appenv]) # In development this is: ansible/development
     site_file  = "ansible/site.yml"
-    key_file   = var.key_file
     ec2_user   = var.ec2_user
   })
   kms_key_id = aws_kms_key.kms.arn

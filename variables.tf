@@ -46,12 +46,6 @@ variable "keypair_name" {
   default     = ""
 }
 
-variable "key_file" {
-  type        = string
-  description = "(optional) The path to the private key to be used for ansible"
-  default     = "~/.ssh/id_rsa"
-}
-
 variable "ec2_user" {
   type        = string
   description = "(optional) The username ansible should use when ssh'ing"
@@ -86,6 +80,17 @@ variable "source_file" {
   type        = string
   description = "(optional) full or relative path to zipped binary of lambda handler"
   default     = "../release/grace-ansible-lambda.zip"
+}
+variable "rotate_keypair_source_file" {
+  type        = string
+  description = "(optional) full or relative path to zipped binary of rotate keypair lambda handler"
+  default     = "../release/grace-ansible-rotate-keypair.zip"
+}
+
+variable "secret_name" {
+  type        = string
+  description = "(optional) name of the secret to store ssh public key"
+  default     = "ansible-key-pairs" #tfsec:ignore:GEN001
 }
 
 variable "job_trigger_file" {

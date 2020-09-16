@@ -45,3 +45,26 @@ resource "aws_lambda_permission" "cloudwatch_invoke" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.schedule.arn
 }
+
+resource "aws_lambda_function" "rotate_keypair" {
+  filename                       = var.rotate_keypair_source_file
+  function_name                  = local.rotate_keypair_name
+  description                    = "Rotates the ansible key pairs secret"
+  role                           = aws_iam_role.role.arn
+  handler                        = local.rotate_handler
+  source_code_hash               = filebase64sha256(var.rotate_keypair_source_file)
+  kms_key_arn                    = aws_kms_key.kms.arn
+  reserved_concurrent_executions = 1
+  runtime                        = "go1.x"
+  timeout                        = 900
+
+  environment {
+    variables = {
+      REGION       = var.region
+      KEYPAIR_NAME = var.keypair_name
+      SECRET_NAME  = var.secret_name
+    }
+  }
+
+  depends_on = [aws_iam_role_policy_attachment.attach]
+}

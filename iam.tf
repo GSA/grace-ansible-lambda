@@ -66,7 +66,9 @@ data "aws_iam_policy_document" "policy" {
       "ec2:DescribeImages",
       "ec2:DescribeInstances",
       "ec2:DescribeInstanceStatus",
+      "ec2:CreateKeyPair",
       "ec2:CreateTags",
+      "ec2:DeleteKeyPair",
       "ec2:DeleteTags",
       "ec2:RunInstances",
       "ec2:TerminateInstances",
@@ -84,7 +86,8 @@ data "aws_iam_policy_document" "policy" {
   statement {
     effect = "Allow"
     actions = [
-      "secretsmanager:GetSecretValue"
+      "secretsmanager:GetSecretValue",
+      "secretsmanager:UpdateSecret"
     ]
     resources = ["arn:aws:secretsmanager:${var.region}:${local.account_id}:secret:ansible-*"]
   }

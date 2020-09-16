@@ -12,7 +12,7 @@ jobs:
           command: apk add --update curl && apk upgrade
       - run:
           name: Touch release zip
-          command: mkdir -p release/; touch release/grace-ansible-lambda.zip
+          command: mkdir -p release/; touch release/grace-ansible-lambda.zip; touch release/grace-ansible-rotate-keypair.zip;
       - run:
           name: terraform init
           command: find . -type f -name "*.tf" -exec dirname {} \;|sort -u | while read m; do (cd "$m" && terraform init -input=false -backend=false) || exit 1; done
@@ -24,7 +24,7 @@ jobs:
           command: if [[ -n "$(terraform fmt -write=false)" ]]; then echo "Some terraform files need be formatted, run 'terraform fmt' to fix"; exit 1; fi
       - run:
           name: Install tflint
-          command: curl -L -o /tmp/tflint.zip https://github.com/terraform-linters/tflint/releases/download/v0.13.2/tflint_linux_amd64.zip && unzip /tmp/tflint.zip -d /usr/local/bin
+          command: curl -L -o /tmp/tflint.zip https://github.com/terraform-linters/tflint/releases/download/v0.20.1/tflint_linux_amd64.zip && unzip /tmp/tflint.zip -d /usr/local/bin
       - run:
           name: Check Terraform configurations with tflint
           command: find . -name ".terraform" -prune -o -type f -name "*.tf" -exec dirname {} \;|sort -u | while read m; do (cd "$m" && tflint && echo "√ $m") || exit 1 ; done
@@ -48,7 +48,7 @@ jobs:
       - run:
           name: Run Unit Tests
           command: make test_lambda
-  release_lambda:
+  release:
     docker:
       - image: circleci/golang:latest
     working_directory: /go/src/github.com/GSA/grace-ansible-lambda
@@ -56,11 +56,31 @@ jobs:
       - checkout
       - run:
           name: Release Lambda
-          command: make release_lambda
+          command: make release
       - persist_to_workspace:
           root: .
           paths:
             - ./release/*
+  lint_rotate_keypair:
+    environment:
+      AWS_REGION: us-east-1
+    docker:
+      - image: circleci/golang:latest
+    working_directory: /go/src/github.com/GSA/grace-ansible-rotate-keypair
+    steps:
+      - checkout
+      - run:
+          name: Lint Lambda
+          command: make lint_rotate_keypair
+  test_rotate_keypair:
+    docker:
+      - image: circleci/golang:latest
+    working_directory: /go/src/github.com/GSA/grace-ansible-rotate-keypair
+    steps:
+      - checkout
+      - run:
+          name: Run Unit Tests
+          command: make test_rotate_keypair
   tfsec:
     docker:
       - image: circleci/golang:latest
@@ -78,16 +98,21 @@ workflows:
     jobs:
       - tfsec
       - lint_lambda
+      - lint_rotate_keypair
       - validate_terraform:
           requires:
             - tfsec
       - test_lambda:
           requires:
             - lint_lambda
-      - release_lambda:
+      - test_rotate_keypair:
+          requires:
+            - lint_rotate_keypair
+      - release:
           requires:
             - validate_terraform
             - test_lambda
+            - test_rotate_keypair
           filters:
             tags:
               only: /^v.*/
