@@ -88,7 +88,9 @@ data "aws_iam_policy_document" "policy" {
     effect = "Allow"
     actions = [
       "secretsmanager:GetSecretValue",
-      "secretsmanager:UpdateSecret"
+      "secretsmanager:UpdateSecret",
+      "secretsmanager:PutSecretValue",
+      "secretsmanager:UpdateSecretVersionStage"
     ]
     resources = ["arn:aws:secretsmanager:${var.region}:${local.account_id}:secret:ansible-*"]
   }

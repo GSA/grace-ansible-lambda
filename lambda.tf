@@ -68,3 +68,10 @@ resource "aws_lambda_function" "rotate_keypair" {
 
   depends_on = [aws_iam_role_policy_attachment.attach]
 }
+
+# allow secretsmanager to trigger lambda
+resource "aws_lambda_permission" "secretsmanager_invoke" {
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.rotate_keypair.function_name
+  principal     = "secretsmanager.amazonaws.com"
+}
