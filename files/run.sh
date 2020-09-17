@@ -2,18 +2,20 @@
 
 export ANSIBLE_HOST_KEY_CHECKING=false
 
-sudo yum -y install awscli python-boto3
+sudo yum -y install awscli python-boto3 jq
 sudo amazon-linux-extras install ansible2 -y
 
 cd /tmp
 
 aws s3 cp --region ${region} --recursive s3://${bucket}/ .
 
-aws secretsmanager get-secret-value --secret-id ansible-key-pairs | jq '.SecretString' | sed 's/"//g' | base64 -Di - -o ~/.ssh/current_id_rsa
-aws secretsmanager get-secret-value --secret-id ansible-key-pairs --version-stage AWSPREVIOUS | jq '.SecretString' | sed 's/"//g' | base64 -Di - -o ~/.ssh/previous_id_rsa
+mkdir ~/.ssh
+chmod 700 ~/.ssh
+aws secretsmanager get-secret-value --region ${region} --secret-id ansible-key-pairs | jq '.SecretString' | sed 's/"//g' | base64 -di - > ~/.ssh/current_id_rsa
+aws secretsmanager get-secret-value --region ${region} --secret-id ansible-key-pairs --version-stage AWSPREVIOUS | jq '.SecretString' | sed 's/"//g' | base64 -di - > ~/.ssh/previous_id_rsa
 chmod 400 ~/.ssh/current_id_rsa
 chmod 400 ~/.ssh/previous_id_rsa
-ssh-agent
+eval $(ssh-agent)
 ssh-add ~/.ssh/current_id_rsa ~/.ssh/previous_id_rsa
 ssh-keygen -l -f ~/.ssh/current_id_rsa > ~/.ssh/current_id_rsa.pub
 ssh-keygen -l -f ~/.ssh/previous_id_rsa > ~/.ssh/previous_id_rsa.pub
