@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/GSA/grace-ansible-lambda/lambda/app"
+	"github.com/GSA/grace-ansible-lambda/rotate_keypair/app"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
