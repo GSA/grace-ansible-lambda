@@ -17,8 +17,8 @@ chmod 400 ~/.ssh/current_id_rsa
 chmod 400 ~/.ssh/previous_id_rsa
 eval $(ssh-agent)
 ssh-add ~/.ssh/current_id_rsa ~/.ssh/previous_id_rsa
-ssh-keygen -l -f ~/.ssh/current_id_rsa > ~/.ssh/current_id_rsa.pub
-ssh-keygen -l -f ~/.ssh/previous_id_rsa > ~/.ssh/previous_id_rsa.pub
+ssh-keygen -y -f ~/.ssh/current_id_rsa > ~/.ssh/current_id_rsa.pub
+ssh-keygen -y -f ~/.ssh/previous_id_rsa > ~/.ssh/previous_id_rsa.pub
 
 # aws s3 cp --region ${region} s3://${bucket}/files/python-xmltodict-0.9.0-1.el7.noarch.rpm python-xmltodict-0.9.0-1.el7.noarch.rpm
 # rpm -i /tmp/python-xmltodict-0.9.0-1.el7.noarch.rpm
